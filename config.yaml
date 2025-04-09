@@ -1,0 +1,24 @@
+framework:
+  version: "0.0.1"
+
+api:
+  server: "https://api.vk.com/"
+  version: "5.199"
+
+LOGGER:
+  version: 1
+  disable_existing_loggers: False
+  formatters:
+    console:
+      (): "logger.formatters.DarkyConsoleFormatter"
+      format: "[%(name)s] %(asctime)s (%(levelname)s) %(message)s"
+  handlers:
+    console:
+      level: INFO #изменять для вывода в консоль
+      class: "logging.StreamHandler"
+      formatter: "console"
+  loggers:
+    DARKYVK:
+      handlers: ["console"]
+      level: "DEBUG"
+      propagate: False
