@@ -4,6 +4,7 @@ framework:
 api:
   server: "https://api.vk.com/"
   version: "5.199"
+  wait: 25
 
 LOGGER:
   version: 1

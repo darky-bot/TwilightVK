@@ -49,12 +49,12 @@ class STYLE(Visual):
     CROSS = "9"
 
     @staticmethod
-    def CUSTOM_COLOR(mode:str="FG", color:str="#FFFFFF") -> str:
+    def CUSTOM_COLOR(color:str="#FFFFFF", mode:str="FG") -> str:
         r, g, b = Visual.hex_to_rgb(color)
         return f"{Visual.prefix}{mode.replace("FG", "3").replace("BG", "4")}8;2;{r};{g};{b}m"
 
     @staticmethod
-    def GRADIENT(text:str, mode:str="FG", colors:list=["#FFFFFF"]) -> str:
+    def GRADIENT(text:str, colors:list=["#FFFFFF"], mode:str="FG") -> str:
 
         '''
         Returns the prepared gradient text
