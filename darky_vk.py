@@ -32,7 +32,7 @@ class DarkyAPI:
     def __init__(self):
         self.api = FastAPI(
             title="DarkyBot API",
-            description="Welcome to DarkyBot API",
+            description="Welcome to the DarkyBot API",
             version="0.0.1",
             lifespan=self.lifespan
             )
