@@ -7,6 +7,7 @@ from utils.darky_visual import STYLE, FG, BG
 class DarkyConsoleFormatter(logging.Formatter):
 
     def format(self, record):
+
         match record.levelname:
             case "DEBUG": record.levelname =    f"{FG.BLUE}{record.levelname}{STYLE.RESET}"
             case "INFO": record.levelname =     f"{FG.GREEN}{record.levelname}{STYLE.RESET}"
@@ -25,6 +26,7 @@ class DarkyConsoleFormatter(logging.Formatter):
 class DarkyFileFormatter(logging.Formatter):
 
     def format(self, record):
+        record.asctime =        re.sub(r'\033\[.*?m', '', record.asctime)
         record.levelname =      re.sub(r'\033\[.*?m', '', record.levelname)
         record.msg =            re.sub(r'\033\[.*?m', '', record.msg)
         if record.exc_text is not None:

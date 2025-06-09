@@ -33,7 +33,22 @@ class Visual(metaclass=VisualMeta):
 
     @staticmethod
     def hex_to_rgb(hex:str) -> tuple[int, int, int]:
+        '''
+        Converts HEX code to RGB
+
+        :param hex: your hex code need to be converted to rgb code
+        :type hex: str
+
+        :returns: tuple of RGB integers (R, G, B)
+        '''
         hex = hex.lstrip("#")
+
+        if len(hex) not in (3, 6):
+            raise ValueError(f"Invalid HEX code: #{hex}")
+        
+        if len(hex) == 3:
+            hex = ''.join(c * 2 for c in hex)
+            
         return tuple(int(hex[i:i+2], 16) for i in (0, 2, 4))
 
 
