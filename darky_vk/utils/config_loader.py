@@ -3,7 +3,7 @@ from types import SimpleNamespace
 
 class Configuration:
 
-    def __init__(self, path:str="config.yaml"):
+    def __init__(self, path:str="darky_vk\config.yaml"):
 
         '''
         Configuration initializing

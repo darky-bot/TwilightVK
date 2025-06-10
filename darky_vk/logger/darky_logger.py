@@ -1,6 +1,5 @@
 import logging.config, logging
 
-
 class DarkyLogger:
     config = {
         "version": 1,

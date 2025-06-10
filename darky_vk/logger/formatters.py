@@ -1,7 +1,7 @@
 import re
 import logging
 
-from utils.darky_visual import STYLE, FG, BG
+from ..utils.darky_visual import STYLE, FG, BG
 
 
 class DarkyConsoleFormatter(logging.Formatter):

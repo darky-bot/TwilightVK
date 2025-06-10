@@ -1,4 +1,4 @@
-from utils.config_loader import Configuration
+from ..utils.config_loader import Configuration
 
 config = Configuration().config["api"]
 

@@ -3,7 +3,12 @@ framework:
 
 api:
   host: 127.0.0.1
-  port: 8000
+  port: 6000
+  title: DarkyBot VK API
+  description: Welcome to the DarkyBot VK API!
+  version: 0.0.1
+
+vk_api:
   server: "https://api.vk.com/"
   version: "5.199"
   wait: 25
@@ -13,7 +18,6 @@ JSON_LOGGER:
   disable_existing_loggers: False
   formatters:
     console:
-      (): "logger.formatters.DarkyConsoleFormatter"
       format: "[%(name)s] %(asctime)s (%(levelname)s) %(message)s"
   handlers:
     console:
