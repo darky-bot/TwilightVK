@@ -1,6 +1,6 @@
 from aiohttp import ClientSession, ClientResponse
 
-class HTTP:
+class Http:
 
     def __init__(self):
         '''
@@ -29,7 +29,7 @@ class HTTP:
             await self.session.close()  
 
 async def main():
-    http = HTTP()
+    http = Http()
     print(await http.request('http://127.0.0.1:8000/ping', method="GET"))
     print(await http.request_text('http://127.0.0.1:8000/ping', method="GET"))
     print(await http.request_json('http://127.0.0.1:8000/ping', method="GET"))

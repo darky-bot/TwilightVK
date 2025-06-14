@@ -1,0 +1,1 @@
+from .darky_vk import DarkyVK, DarkyAPI

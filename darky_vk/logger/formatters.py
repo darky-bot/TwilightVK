@@ -1,35 +1,124 @@
 import re
 import logging
+from typing import Literal
+from copy import copy
 
-from ..utils.darky_visual import STYLE, FG, BG
+from .darky_visual import STYLE, FG, BG
 
 
 class DarkyConsoleFormatter(logging.Formatter):
 
-    def format(self, record):
+    levelname_colors = {
+        "DEBUG": f"{FG.BLUE}DEBUG{STYLE.RESET}",
+        "INFO": f"{FG.GREEN}INFO{STYLE.RESET}",
+        "WARNING": f"{FG.YELLOW}WARNING{STYLE.RESET}",
+        "ERROR": f"{FG.BOLD}{FG.RED}ERROR{STYLE.RESET}",
+        "CRITICAL": f"{FG.BOLD}{BG.RED}{FG.WHITE}CRITICAL{STYLE.RESET}"
+    }
 
-        match record.levelname:
-            case "DEBUG": record.levelname =    f"{FG.BLUE}{record.levelname}{STYLE.RESET}"
-            case "INFO": record.levelname =     f"{FG.GREEN}{record.levelname}{STYLE.RESET}"
-            case "WARNING": record.levelname =  f"{FG.YELLOW}{STYLE.RESET}"
-            case "ERROR": 
-                record.levelname =              f"{STYLE.BOLD}{FG.RED}{record.levelname}{STYLE.RESET}"
-            case "CRITICAL": 
-                record.levelname =              f"{STYLE.BOLD}{BG.RED}{FG.WHITE}{record.levelname}{STYLE.RESET}"
-                record.msg =                    f"{FG.RED}{record.msg}{STYLE.RESET}"
+    asctime_color = f"{FG.CUSTOM_COLOR("#DDD")}%s{STYLE.RESET}"
+    name_color = f"{FG.CUSTOM_COLOR("#888")}%s{STYLE.RESET}"
 
-        return super().format(record)
+    def __init__(
+            self,
+            fmt: str | None = None,
+            datefmt: str | None = None,
+            style: Literal["%", "{", "$"] = "%",
+            colored: Literal[True, False] = False
+    ):
+        '''
+        Initializes the console formatter for logging module
+
+        :param fmt: Log message format
+        :type fmt: str | None
+
+        :param datefmt: Time format
+        :type datefmt: str | None
+
+        :param style: Format style
+        
+        :param colored: Sets the colors for log message
+        :type colored: bool
+        '''
+        self.colored = colored
+        super().__init__(fmt=fmt, datefmt=datefmt, style=style)
     
+    def color_levename(self, levelname: str) -> str:
+        '''
+        Applies colors to the levelname
+        '''
+        if self.colored:
+            return self.levelname_colors[levelname]
+        return levelname
+    
+    def formatTime(self, record, datefmt = None):
+        '''
+        Applies color to the asctime
+        '''
+        time_str = super().formatTime(record, datefmt)
+        if self.colored:
+            return self.asctime_color % time_str
+        return time_str
+
     def formatException(self, ei):
-        return f"{FG.RED}{super().formatException(ei)}{STYLE.RESET}"
+        '''
+        Applies colors to the exception's traceback
+        '''
+        if self.colored:
+            return f"{FG.RED}{super().formatException(ei)}{STYLE.RESET}"
+        return super().formatException(ei)
+
+    def format(self, record):
+        '''
+        Formatting the log message
+        '''
+        record_copy = copy(record)
+        if self.colored:
+            record_copy.name = self.name_color % record_copy.name
+            record_copy.levelname = self.color_levename(record_copy.levelname)
+        record_copy.name = record_copy.name + " " * (10 - len(record.name))
+        record_copy.levelname = record_copy.levelname + " " * (8 - len(record.levelname))
+        return super().format(record_copy)
+        
 
 class DarkyFileFormatter(logging.Formatter):
 
-    def format(self, record):
-        record.asctime =        re.sub(r'\033\[.*?m', '', record.asctime)
-        record.levelname =      re.sub(r'\033\[.*?m', '', record.levelname)
-        record.msg =            re.sub(r'\033\[.*?m', '', record.msg)
-        if record.exc_text is not None:
-            record.exc_text =   re.sub(r'\033\[.*?m', '', record.exc_text)
+    def __init__(
+            self,
+            fmt: str | None = None,
+            datefmt: str | None = None,
+            style: Literal["%", "{", "$"] = "%",
+    ):
+        '''
+        Initializes the console formatter for logging module
 
-        return super().format(record)
+        :param fmt: Log message format
+        :type fmt: str | None
+
+        :param datefmt: Time format
+        :type datefmt: str | None
+
+        :param style: Format style
+        '''
+        super().__init__(fmt=fmt, datefmt=datefmt, style=style)
+    
+    def formatTime(self, record, datefmt = None):
+        time_str = super().formatTime(record, datefmt)
+        return time_str
+    
+    def formatException(self, ei):
+        return super().formatException(ei)
+
+    def format(self, record):
+        '''
+        Removes the colors for file logging
+        '''
+        record_copy = copy(record)
+        record_copy.levelname =      re.sub(r'\033\[.*?m', '', record_copy.levelname)
+        record_copy.msg =            re.sub(r'\033\[.*?m', '', record_copy.msg)
+        record_copy.name =           re.sub(r'\033\[.*?m', '', record_copy.name)
+
+        record_copy.name = record_copy.name + " " * (10 - len(record.name))
+        record_copy.levelname = record_copy.levelname + " " * (8 - len(record.levelname))
+
+        return super().format(record_copy)

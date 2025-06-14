@@ -46,6 +46,8 @@ class DarkyLogger:
         - error()
         - critical()
 
+        bool exc_info при вызове какого либо из уровня логгирования включит отображение последнего traceback
+
         Работающих по аналогии со стандартным logging
         '''
         
@@ -77,7 +79,13 @@ class DarkyLogger:
         return self.__logger__
 
 def main():
-    logger = DarkyLogger(logger_name="test")
+    config = DarkyLogger.config
+    config["formatters"] = {
+        "console": {
+            "fmt": "%(name)s | %(asctime)s | %(levelname)s | %(message)s"
+        }
+    }
+    logger = DarkyLogger(logger_name="test", configuration=config)
     for level in [logger.debug, logger.info, logger.warning, logger.error, logger.critical]:
         level(f"Test log message")
 

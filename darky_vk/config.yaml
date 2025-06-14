@@ -3,7 +3,7 @@ framework:
 
 api:
   host: 127.0.0.1
-  port: 6000
+  port: 8000
   title: DarkyBot VK API
   description: Welcome to the DarkyBot VK API!
   version: 0.0.1
@@ -18,14 +18,24 @@ JSON_LOGGER:
   disable_existing_loggers: False
   formatters:
     console:
-      format: "[%(name)s] %(asctime)s (%(levelname)s) %(message)s"
+      (): "darky_vk.logger.formatters.DarkyConsoleFormatter"
+      fmt: "%(name)s | %(asctime)s | %(levelname)s | %(message)s"
+      colored: True
   handlers:
     console:
       level: INFO #изменять для вывода в консоль
       class: "logging.StreamHandler"
       formatter: "console"
   loggers:
-    DARKYVK:
+    DARKY_API:
       handlers: ["console"]
-      level: "DEBUG"
+      level: DEBUG
+      propagate: False
+    DARKY_VK:
+      handlers: ["console"]
+      level: DEBUG
+      propagate: False
+    uvicorn:
+      handlers: ["console"]
+      level: WARNING
       propagate: False
