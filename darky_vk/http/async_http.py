@@ -6,34 +6,53 @@ class Http:
         '''
         This class allows to use HTTP requests asynchronously
         '''
-        self.session = None     
+        self.session = None
 
-    async def request(self, url:str, method:str="GET", data=None, headers=None) -> ClientResponse:
+    async def get(self, url:str, params:dict=None, raw:bool=True) -> ClientResponse:
+        '''
+        HTTP GET method
+
+        :param url: The url to get the response from
+        :type url: str
+        '''
         if self.session is None: self.session = ClientSession()
-        async with self.session.request(url=url, method=method, data=data, headers=headers) as response:
-            await response.read()
+        response = await self.session.get(url=url, params=params)
+        if raw:
             return response
+        return await response.json()
     
-    async def request_text(self, url:str, method:str="GET", data=None, headers=None) -> str:
-        response = await self.request(url, method, data, headers)
-        return await response.text(encoding="UTF-8")
+    async def post(self, url:str, data:dict, params:dict, headers:dict=None, raw:bool=True) -> ClientResponse:
+        '''
+        HTTP POST method
 
-    async def request_json(self, url:str, method:str="GET", data=None, headers=None) -> dict:
-        response = await self.request(url, method, data, headers)
-        return await response.json(
-            encoding="UTF-8"
-        )
+        :param url: The URL to send the POST request to
+        :type url: str
+
+        :param data: Dictionary containing the data to be sent in the POST request body
+        :type data: dict
+
+        :param headers: Optional dictionary of HTTP headers to include in the request
+        :type headers: dict, optional
+        '''
+        if self.session is None: self.session = ClientSession()
+        response = await self.session.post(url=url,
+                                           params=params,
+                                           json=data,
+                                           headers=headers)
+        response.raise_for_status()
+        if raw:
+            return response
+        return await response.json()
     
     async def close(self):
         if self.session is not None and not self.session.closed:
-            await self.session.close()  
+            await self.session.close()
 
 async def main():
-    http = Http()
-    print(await http.request('http://127.0.0.1:8000/ping', method="GET"))
-    print(await http.request_text('http://127.0.0.1:8000/ping', method="GET"))
-    print(await http.request_json('http://127.0.0.1:8000/ping', method="GET"))
-    await http.close()
+    httpClient = Http()
+    print(await httpClient.get('http://httpbin.org/get', raw=False))
+    print(await httpClient.post('http://httpbin.org/post', {"user": "123", "pass": "123"}, {"header": "TestHeader"}))
+    await httpClient.close()
 
 if __name__ == "__main__":
     import asyncio

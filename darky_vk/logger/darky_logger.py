@@ -99,22 +99,3 @@ class DarkyLogger:
 
         self.__logger__.debug(f"'DarkyLogger.get_logger()' has been called")
         return self.__logger__
-
-def main():
-    config = DarkyLogger.config
-    config["formatters"] = {
-        "console": {
-            "fmt": "%(name)s | %(asctime)s | %(levelname)s | %(message)s"
-        }
-    }
-    logger = DarkyLogger(logger_name="test", configuration=config)
-    for level in [logger.debug, logger.info, logger.warning, logger.error, logger.critical]:
-        level(f"Test log message", exc_info=True)
-
-    try:
-        raise Exception
-    except Exception as e:
-        logger.error("We got an error", exc_info=True)
-
-if __name__ == "__main__":
-    main()

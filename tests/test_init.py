@@ -13,12 +13,12 @@ async def test_with_no_parameters():
 @pytest.mark.asyncio
 async def test_with_no_access_idtoken():
     with pytest.raises(AuthError, match="ACCESS_TOKEN is None!"):
-        DarkyAPI(FRAMEWORK=DarkyVK(group_id=123)).start()
+        DarkyAPI(FRAMEWORK=DarkyVK(GROUP_ID=123)).start()
 
 @pytest.mark.asyncio
 async def test_with_no_group_id():
     with pytest.raises(AuthError, match="GROUP_ID is None!"):
-        DarkyAPI(FRAMEWORK=DarkyVK(access_token="123")).start()
+        DarkyAPI(FRAMEWORK=DarkyVK(ACCESS_TOKEN="123")).start()
 
 @pytest.mark.asyncio
 async def test_success_and_ping():
