@@ -13,10 +13,10 @@ from .logger.darky_visual import Visual, STYLE, BG, FG
 from .utils.config_loader import Configuration
 from .handlers.exceptions import AuthError
 
-CONFIG = Configuration().get_config()
-
 BASE_DIR = Path(__file__).resolve().parent
 ASSETS = BASE_DIR / "assets"
+
+CONFIG = Configuration().get_config()
 
 api_logger = DarkyLogger(logger_name="DARKY_API", configuration=CONFIG.LOGGER)
 framework_logger = DarkyLogger(logger_name="DARKY_VK", configuration=CONFIG.LOGGER)
@@ -25,39 +25,43 @@ Visual.ansi()
 class DarkyVK:
 
     def __init__(self, 
-                 access_token:str=None, 
-                 group_id:int=None, 
-                 api_version:str=CONFIG.vk_api.version) -> None:
+                 ACCESS_TOKEN:str=None, 
+                 GROUP_ID:int=None, 
+                 API_VERSION:str=CONFIG.vk_api.version) -> None:
 
         '''
         Initializes DarkyVK as module
 
-        :param access_token: your group's access token, you can find it here(https://dev.vk.com/ru/api/access-token/community-token/in-community-settings)
-        :type access_token: str
+        :param ACCESS_TOKEN: your group's access token, you can find it here(https://dev.vk.com/ru/api/access-token/community-token/in-community-settings)
+        :type ACCESS_TOKEN: str
 
-        :param group_id: your group's id, you can find it in your group's settings
-        :type group_id: int
+        :param GROUP_ID: your group's id, you can find it in your group's settings
+        :type GROUP_ID: int
 
-        :param api_version: version of VK API, by default its grabbed from the frameworks's default configuration
-        :type api_version: str | None
+        :param API_VERSION: version of VK API, by default its grabbed from the frameworks's default configuration
+        :type API_VERSION: str | None
         '''
 
         self.__stop_required__ = False
-        self.__access_token__ = access_token
-        self.__group_id__ = group_id
-        self.__api_version__ = api_version
+        self.__access_token__ = ACCESS_TOKEN
+        self.__group_id__ = GROUP_ID
+        self.__api_version__ = API_VERSION
 
-        if access_token == None:
+        if ACCESS_TOKEN == None:
             raise AuthError("ACCESS_TOKEN is None!")
         
-        if group_id == None:
+        if GROUP_ID == None:
             raise AuthError("GROUP_ID is None!")
 
     async def run(self):
         framework_logger.info(f"{FG.BLUE}DarkyVK is started{STYLE.RESET}")
         while not self.__stop_required__:
-            pass
+            async for event in self.listen():
+                ...
         framework_logger.info(f"{FG.RED}DarkyVK has been stopped!{STYLE.RESET}")
+    
+    async def listen():
+        ...
 
     def stop(self):
         framework_logger.debug(f"DarkyVK was asked to stop")
@@ -101,18 +105,18 @@ class DarkyAPI:
 
         self.__router__ = APIRouter()
         self.__router__.add_api_route("/ping", self.ping, methods=["GET"], 
-                                  tags=["API"], name="Pings the api server",
-                                  description="Pings the bot's API")
+                                  tags=["API"], name=CONFIG.api.routes.ping.name,
+                                  description=CONFIG.api.routes.ping.description)
         self.__router__.add_api_route("/stop", self.stop, methods=["GET"],
-                                      tags=["API"], name="Stops the bot's framework and API",
-                                      description="Stops the bot and his API")
+                                      tags=["API"], name=CONFIG.api.routes.stop.name,
+                                      description=CONFIG.api.routes.stop.description)
         self.__router__.add_api_route("/favicon.ico", self.favicon, include_in_schema=False, methods=["GET"])
 
         self.__api__.include_router(self.__router__)
 
     def start(self):
         try:
-            api_logger.info(f"Starting DarkyVK and API...")
+            api_logger.info(f"Starting...")
 
             uvicorn_config = uvicorn.Config(
                 app=self.__api__,
@@ -121,13 +125,15 @@ class DarkyAPI:
                 log_config=CONFIG.LOGGER
             )
             self.__uvicorn_server__ = uvicorn.Server(uvicorn_config)
-
+            
+            api_logger.debug("Starting API Thread...")
             self.__api_thread__ = Thread(
                 target=lambda: asyncio.run(self.__uvicorn_server__.serve()),
                 daemon=False
             )
             self.__api_thread__.start()
 
+            api_logger.debug("Starting Framework Thread...")
             while self.__framework__ == None:
                 pass
 

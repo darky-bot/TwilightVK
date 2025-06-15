@@ -1,4 +1,7 @@
 import logging.config, logging
+from pathlib import Path
+
+from .darky_visual import Visual
 
 class DarkyLogger:
     config = {
@@ -6,7 +9,7 @@ class DarkyLogger:
         "disable_existing_loggers": False,
         "formatters": {
             "console": {
-                "format": "%(levelname)s %(message)s"
+                "format": "%(levelname)s - %(message)s"
             }
         },
         "handlers": {
@@ -25,18 +28,17 @@ class DarkyLogger:
         }
     }
 
-    def __init__(self, logger_name:str=None, configuration:dict=None) -> None:
+    def __init__(self, logger_name:str=None, configuration:dict=None, ansi:bool=True) -> None:
 
-        '''
+        r'''
         Класс DarkyLogger позволяет удобно и быстро инициализировать работу логгера logging
 
         :param logger_name: используется для присвоения уникального имени логгеру\
-        (видно при использовании в форматировании %(name) или в файле логов при использовании встроенного formatters.DarkyFileFormatter)
+        (видно при использовании в форматировании %(name)s)
         :type logger_name: str 
         
-        :param configuration: позволяет гибко настроить конфигурацию логгера\
-        (см. https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema)\
-        По умолчанию берет конфигурацию из фреймворка DarkyVK
+        :param configuration: позволяет гибко настроить конфигурацию логгера
+        (см. https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema)
         :type configuration: dict
 
         Не смотря на то что некоторые методы не отображаются, класс поддерживает следующие методы логгирования:
@@ -46,9 +48,26 @@ class DarkyLogger:
         - error()
         - critical()
 
-        bool exc_info при вызове какого либо из уровня логгирования включит отображение последнего traceback
-
         Работающих по аналогии со стандартным logging
+
+        Пример::
+
+            >>> test_logger = DarkyLogger("test")
+            >>> test_logger.info("Test message")
+            INFO - Test message
+
+        ``bool exc_info`` при вызове какого либо из уровня логгирования включит отображение последнего traceback:
+
+            >>> try:
+            ...     raise Exception
+            >>> except Exception as ex:
+            ...     test_logger.error("We got an error", exc_info=True)
+            ERROR - We got an error
+            Traceback (most recent call last):
+              File "test.py", line 2, in main
+                raise Exception
+            Exception
+
         '''
         
         if logger_name is None:
@@ -56,6 +75,9 @@ class DarkyLogger:
 
         if configuration is None:
             configuration = DarkyLogger.config
+        
+        if ansi:
+            Visual.ansi()
 
         logging.config.dictConfig(configuration)
         self.__logger__ = logging.getLogger(logger_name)
@@ -87,7 +109,12 @@ def main():
     }
     logger = DarkyLogger(logger_name="test", configuration=config)
     for level in [logger.debug, logger.info, logger.warning, logger.error, logger.critical]:
-        level(f"Test log message")
+        level(f"Test log message", exc_info=True)
+
+    try:
+        raise Exception
+    except Exception as e:
+        logger.error("We got an error", exc_info=True)
 
 if __name__ == "__main__":
     main()

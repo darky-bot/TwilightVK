@@ -1,23 +1,28 @@
 import pytest
 import asyncio
+from fastapi.testclient import TestClient
 
-from darky_vk.http import async_http
 from darky_vk import DarkyVK, DarkyAPI
 from darky_vk.handlers.exceptions import AuthError
 
-http = async_http.Http()
-
 @pytest.mark.asyncio
-async def test_init_failed():
+async def test_with_no_parameters():
     with pytest.raises(AuthError, match="ACCESS_TOKEN is None!"):
         DarkyAPI(FRAMEWORK=DarkyVK()).start()
 
 @pytest.mark.asyncio
-async def test_init_failed_accesstoken():
+async def test_with_no_access_idtoken():
     with pytest.raises(AuthError, match="ACCESS_TOKEN is None!"):
         DarkyAPI(FRAMEWORK=DarkyVK(group_id=123)).start()
 
 @pytest.mark.asyncio
-async def test_init_failed_groupid():
+async def test_with_no_group_id():
     with pytest.raises(AuthError, match="GROUP_ID is None!"):
         DarkyAPI(FRAMEWORK=DarkyVK(access_token="123")).start()
+
+@pytest.mark.asyncio
+async def test_success_and_ping():
+    client = TestClient(await DarkyAPI(FRAMEWORK=DarkyVK("123", 123)).get_api())
+    response = client.get("/ping")
+    assert response.status_code == 200
+    assert response.json() == {"response": "pong"}

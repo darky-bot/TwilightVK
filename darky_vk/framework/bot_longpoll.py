@@ -1,10 +1,10 @@
 from ..utils.config_loader import Configuration
 
-config = Configuration().config["api"]
+CONFIG = Configuration().get_config()
 
 class BotsLongPoll:
 
-    def __init__(self, access_token:str=None, group_id:int=None, api_version:str|None=config["version"]):
+    def __init__(self, access_token:str=None, group_id:int=None, api_version:str|None=CONFIG.vk_api.version):
         '''
         BotLongPoll provides a communication between your app and VK API
         Bots Long Poll API allows you to process community events in real time
@@ -21,12 +21,15 @@ class BotsLongPoll:
 
         self.__access_token__ = access_token
         self.__group_id__ = group_id
-        self.__api_url__ = config["server"]
+        self.__api_url__ = CONFIG.vk_api.server
         self.__api_version__ = api_version
         self.__server__ = None
         self.__key__ = None
         self.__ts__ = None
-        self.__wait__ = config["wait"]
+        self.__wait__ = CONFIG.vk_api.wait
     
-    def auth(self):
+    async def auth(self):
+        ...
+    
+    async def check_event(self):
         ...

@@ -1,15 +1,18 @@
 import yaml
 from types import SimpleNamespace
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 class Configuration:
 
-    def __init__(self, path:str="darky_vk\config.yaml"):
+    def __init__(self, path:str|Path=BASE_DIR / "config.yaml"):
 
         '''
         Configuration initializing
 
         :param path: Path to the yaml configuration file
-        :type path: str
+        :type path: str | Path
         '''
         self.__path__ = path
         self.config = SimpleNamespace()

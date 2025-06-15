@@ -3,9 +3,16 @@ framework:
 
 api:
   host: 127.0.0.1
-  port: 8000
+  port: 8080
   title: DarkyBot VK API
   description: Welcome to the DarkyBot VK API!
+  routes:
+    ping:
+      name: Ping the API
+      description: Pings the server and bot's API
+    stop:
+      name: Stop the bot
+      description: Stops the bot and its API
   version: 0.0.1
 
 vk_api:
@@ -21,11 +28,19 @@ JSON_LOGGER:
       (): "darky_vk.logger.formatters.DarkyConsoleFormatter"
       fmt: "%(name)s | %(asctime)s | %(levelname)s | %(message)s"
       colored: True
+    uvicorn_access_console:
+      (): "darky_vk.logger.formatters.UvicornAccessFormatter"
+      fmt: "%(name)s | %(asctime)s | %(levelname)s | %(client_addr)s - \"%(request_line)s\" %(status_code)s"
+      colored: True
   handlers:
     console:
-      level: INFO #изменять для вывода в консоль
+      level: INFO
       class: "logging.StreamHandler"
       formatter: "console"
+    uvicorn_access_console:
+      level: DEBUG
+      class: "logging.StreamHandler"
+      formatter: "uvicorn_access_console"
   loggers:
     DARKY_API:
       handlers: ["console"]
@@ -35,7 +50,11 @@ JSON_LOGGER:
       handlers: ["console"]
       level: DEBUG
       propagate: False
-    uvicorn:
+    uvicorn.access:
+      handlers: ["uvicorn_access_console"]
+      level: DEBUG
+      propagate: False
+    uvicorn.error:
       handlers: ["console"]
       level: WARNING
       propagate: False

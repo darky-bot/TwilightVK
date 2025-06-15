@@ -3,6 +3,8 @@ import logging
 from typing import Literal
 from copy import copy
 
+from uvicorn.logging import AccessFormatter
+
 from .darky_visual import STYLE, FG, BG
 
 
@@ -76,7 +78,7 @@ class DarkyConsoleFormatter(logging.Formatter):
         if self.colored:
             record_copy.name = self.name_color % record_copy.name
             record_copy.levelname = self.color_levename(record_copy.levelname)
-        record_copy.name = record_copy.name + " " * (10 - len(record.name))
+        record_copy.name = record_copy.name + " " * (15 - len(record.name))
         record_copy.levelname = record_copy.levelname + " " * (8 - len(record.levelname))
         return super().format(record_copy)
         
@@ -103,8 +105,7 @@ class DarkyFileFormatter(logging.Formatter):
         super().__init__(fmt=fmt, datefmt=datefmt, style=style)
     
     def formatTime(self, record, datefmt = None):
-        time_str = super().formatTime(record, datefmt)
-        return time_str
+        return super().formatTime(record, datefmt)
     
     def formatException(self, ei):
         return super().formatException(ei)
@@ -118,7 +119,10 @@ class DarkyFileFormatter(logging.Formatter):
         record_copy.msg =            re.sub(r'\033\[.*?m', '', record_copy.msg)
         record_copy.name =           re.sub(r'\033\[.*?m', '', record_copy.name)
 
-        record_copy.name = record_copy.name + " " * (10 - len(record.name))
+        record_copy.name = record_copy.name + " " * (15 - len(record.name))
         record_copy.levelname = record_copy.levelname + " " * (8 - len(record.levelname))
 
         return super().format(record_copy)
+
+class UvicornAccessFormatter(DarkyConsoleFormatter, AccessFormatter):
+    pass
