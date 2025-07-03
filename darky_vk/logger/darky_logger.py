@@ -1,5 +1,5 @@
 import logging.config, logging
-from pathlib import Path
+from collections.abc import Mapping
 
 from .darky_visual import Visual
 
@@ -82,6 +82,37 @@ class DarkyLogger:
         logging.config.dictConfig(configuration)
         self.__logger__ = logging.getLogger(logger_name)
         self.__logger__.debug(f"DarkyLogger initiated")
+    
+    def debug(self,
+              msg:str,
+              exc_info:bool=False,
+              stack_info:bool=False,
+              extra: Mapping[str, object] | None = None):
+        self.__logger__.debug(msg, exc_info=exc_info, stack_info=stack_info, extra=extra)
+    def info(self,
+              msg:str,
+              exc_info:bool=False,
+              stack_info:bool=False,
+              extra: Mapping[str, object] | None = None):
+        self.__logger__.info(msg, exc_info=exc_info, stack_info=stack_info, extra=extra)
+    def warning(self,
+              msg:str,
+              exc_info:bool=False,
+              stack_info:bool=False,
+              extra: Mapping[str, object] | None = None):
+        self.__logger__.warning(msg, exc_info=exc_info, stack_info=stack_info, extra=extra)
+    def error(self,
+              msg:str,
+              exc_info:bool=False,
+              stack_info:bool=False,
+              extra: Mapping[str, object] | None = None):
+        self.__logger__.error(msg, exc_info=exc_info, stack_info=stack_info, extra=extra)
+    def critical(self,
+              msg:str,
+              exc_info:bool=False,
+              stack_info:bool=False,
+              extra: Mapping[str, object] | None = None):
+        self.__logger__.critical(msg, exc_info=exc_info, stack_info=stack_info, extra=extra)
     
     def __getattr__(self, name):
 

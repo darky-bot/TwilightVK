@@ -9,7 +9,7 @@ from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 
 from .logger.darky_logger import DarkyLogger
-from .logger.darky_visual import Visual, STYLE, BG, FG
+from .logger.darky_visual import Visual, STYLE, FG
 from .utils.config_loader import Configuration
 from .framework.handlers.exceptions import InitError
 from .framework.bot_longpoll import BotsLongPoll
@@ -19,8 +19,6 @@ ASSETS = BASE_DIR / "assets"
 
 CONFIG = Configuration().get_config()
 
-api_logger = DarkyLogger(logger_name="DARKY_API", configuration=CONFIG.LOGGER)
-framework_logger = DarkyLogger(logger_name="DARKY_VK", configuration=CONFIG.LOGGER)
 Visual.ansi()
    
 class DarkyVK:
@@ -43,13 +41,13 @@ class DarkyVK:
         :type API_VERSION: str | None
         '''
 
-        self.__shutdown_initiated__ = False
         self.__access_token__ = ACCESS_TOKEN
         self.__group_id__ = GROUP_ID
         self.__api_version__ = API_VERSION
         self.__bot__ = BotsLongPoll(self.__access_token__,
                                     self.__group_id__,
                                     self.__api_version__)
+        self.logger = DarkyLogger(logger_name="DARKY_VK", configuration=CONFIG.LOGGER)
 
         if ACCESS_TOKEN == None:
             raise InitError("ACCESS_TOKEN is None!")
@@ -59,21 +57,18 @@ class DarkyVK:
 
     async def run_polling(self):
         try:
-            framework_logger.info(f"{FG.BLUE}DarkyVK is started{STYLE.RESET}")
+            self.logger.info(f"{FG.BLUE}DarkyVK is started{STYLE.RESET}")
             await self.__bot__.auth()
-            listening = self.__bot__.listen()
-            async for event in listening:
+            async for event in self.__bot__.listen():
                 ...
         except asyncio.CancelledError:
-            framework_logger.warning(f"Polling was cancelled")
-            if listening is not None:
-                await listening.aclose()
+            self.logger.warning(f"Polling was forcibly canceled (it is not recommend to do this)")
             self.__bot__.stop()
         finally:
-            framework_logger.info(f"{FG.RED}DarkyVK has been stopped!{STYLE.RESET}")
+            self.logger.info(f"{FG.RED}DarkyVK has been stopped!{STYLE.RESET}")
 
     def stop(self):
-        framework_logger.debug(f"DarkyVK was asked to stop")
+        self.logger.debug(f"DarkyVK was asked to stop")
         self.__bot__.stop()
 
 
@@ -128,15 +123,17 @@ class DarkyAPI:
 
         self.__api__.include_router(self.__router__)
 
+        self.logger = DarkyLogger(logger_name="DARKY_API", configuration=CONFIG.LOGGER)
+
     def start(self):
         try:
-            api_logger.info(f"Starting...")
+            self.logger.info(f"Starting...")
             self.__loop__.run_until_complete(self._run_threads())
         except KeyboardInterrupt:
-            api_logger.warning(f"KeyboardInterrupt recieved, shutting down...")
+            self.logger.warning(f"KeyboardInterrupt recieved, shutting down...")
             self.__loop__.run_until_complete(self.__shutdown_api__(force=True))
         except Exception as ex:
-            api_logger.error(f"Error while starting: {ex}")
+            self.logger.error(f"Error while starting: {ex}")
         finally:
             self.__loop__.run_until_complete(self.__loop__.shutdown_asyncgens())
             self.__loop__.close()
@@ -163,7 +160,7 @@ class DarkyAPI:
                 return_exceptions=True)
             
         except Exception as e:
-            api_logger.error(f"Failed to start API: {e}")
+            self.logger.error(f"Failed to start API: {e}")
             await self.__shutdown_api__()
     
     def on_startup(self, func):
@@ -190,46 +187,46 @@ class DarkyAPI:
             for callback in self.__startup_callbacks__:
                 await self.__callback_func__(callback)
             if self.__framework__ == None:
-                api_logger.warning(f"Framework was not configured!")
-                api_logger.info(f"Initializing default DarkyVK...")
+                self.logger.warning(f"Framework was not configured!")
+                self.logger.info(f"Initializing default DarkyVK...")
                 self.__framework__ = DarkyVK("123", 123)
-            api_logger.info(f"{FG.BLUE}Darky API is started{STYLE.RESET} (on {CONFIG.api.host}:{CONFIG.api.port})")
+            self.logger.info(f"{FG.BLUE}Darky API is started{STYLE.RESET} (on {CONFIG.api.host}:{CONFIG.api.port})")
             yield
             '''Here is the shutdown code'''
             for callback in self.__shutdown_callbacks__:
                 await self.__callback_func__(callback)
-            api_logger.info(f"{FG.RED}Darky API has been stopped{STYLE.RESET}")
+            self.logger.info(f"{FG.RED}Darky API has been stopped{STYLE.RESET}")
         except Exception as e:
-            api_logger.error(f"Error in API: {e}")
+            self.logger.error(f"Error in API: {e}")
             await self.__shutdown_api__()
 
-    async def get_api(self):
+    async def get_api(self) -> FastAPI:
         return self.__api__
     
-    async def ping(self):
+    async def ping(self) -> dict: #!ЭТО МЕТОД API
         return {"response": "pong"}
     
-    async def stop(self, force:bool=False):
+    async def stop(self, force:bool=False) -> dict: #!ЭТО МЕТОД API
         
         if not self.__shutdown_initiated__:
             self.__shutdown_initiated__ = True
 
-        api_logger.info("Shutdown initiated!")
+        self.logger.info("Shutdown initiated!")
         await asyncio.create_task(self.__shutdown_api__(force=force))
         return {"response": "shutdown initiated!"}
     
     async def __shutdown_api__(self, force:bool=False):
 
         if self.__uvicorn_server__.started:
-            api_logger.debug(f"Shutting down the API...")
+            self.logger.debug(f"Shutting down the API...")
             self.__uvicorn_server__.should_exit = True
             await asyncio.sleep(0.1)
         
         if self.__framework__:
-            api_logger.debug(f"Shutting down the framework...")
+            self.logger.debug(f"Shutting down the framework...")
             if force:
                 self.__framework_task__.cancel()
             self.__framework__.stop()
     
-    async def favicon(self):
+    async def favicon(self) -> FileResponse: #!ЭТО МЕТОД API
         return FileResponse(ASSETS / "favicon.ico")

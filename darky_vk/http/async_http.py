@@ -14,6 +14,12 @@ class Http:
 
         :param url: The url to get the response from
         :type url: str
+
+        :param params: Dictionary containing the optional data to be sent in the GET request
+        :type params: dict | None
+
+        :param raw: Defines the raw/json response
+        :type raw: bool
         '''
         if self.session is None: self.session = ClientSession()
         response = await self.session.get(url=url, params=params)
@@ -33,6 +39,9 @@ class Http:
 
         :param headers: Optional dictionary of HTTP headers to include in the request
         :type headers: dict, optional
+
+        :param raw: Defines the raw/json response
+        :type raw: bool
         '''
         if self.session is None: self.session = ClientSession()
         response = await self.session.post(url=url,

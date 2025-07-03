@@ -5,9 +5,9 @@ class DarkyError(Exception):
     def __str__(self):
         return f"{self.message}"
     
-
 class InitError(DarkyError):
     pass
+
 
 class VKAPIError(Exception):
     def __init__(self,

@@ -54,6 +54,10 @@ JSON_LOGGER:
       handlers: ["console"]
       level: DEBUG
       propagate: False
+    vk-methods:
+      handlers: ["console"]
+      level: DEBUG
+      propagate: False
     uvicorn.access:
       handlers: ["uvicorn_access_console"]
       level: DEBUG

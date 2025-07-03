@@ -1,15 +1,13 @@
 import asyncio
 
 from ..utils.config_loader import Configuration
-from ..http.async_http import Http
 from ..logger.darky_logger import DarkyLogger
 from ..logger.darky_visual import FG, STYLE
+from ..http.async_http import Http
+from .api.api import VkMethods
 
 CONFIG = Configuration().get_config()
-
 httpClient = Http()
-
-logger = DarkyLogger("botlongpoll", configuration=CONFIG.LOGGER)
 
 class BotsLongPoll:
 
@@ -39,6 +37,8 @@ class BotsLongPoll:
         self.__wait__ = CONFIG.vk_api.wait
         self.authorized = False
         self.wait_for_response = False
+        self.api = VkMethods(self.__api_url__, self.__access_token__)
+        self.logger = DarkyLogger("botlongpoll", configuration=CONFIG.LOGGER)
     
     async def auth(self):
 
@@ -47,28 +47,27 @@ class BotsLongPoll:
         '''
 
         try:
-            logger.debug(f"Authorization...")
-            logger.debug(f"Getting Bots LongPoll Server...")
-            response = await httpClient.get(url=f"{self.__api_url__}/method/groups.getLongPollServer",
-                                        params={
+            self.logger.debug(f"Authorization...")
+            self.logger.debug(f"Getting Bots LongPoll Server...")
+            response = await self.api.base_get_method(api_method="groups.getLongPollServer",
+                                        values={
                                             "access_token":self.__access_token__,
                                             "v": self.__api_version__,
                                             "group_id": self.__group_id__
-                                        },
-                                        raw=False)
+                                        })
             
             if "error" in response:
                 ...
 
             response = response["response"]
-            logger.debug(f"Server aquired: {response}")
+            self.logger.debug(f"Server aquired: {response}")
             self.__key__ = response["key"]
             self.__server__ = response["server"]
             self.__ts__ = response["ts"]
             self.authorized = True
-            logger.debug(f"Authorized")
+            self.logger.debug(f"Authorized")
         except KeyError as ex:
-            logger.error(f"Unable to find key: {ex} {response}")
+            self.logger.error(f"Unable to find key: {ex} {response}")
     
     async def check_event(self) -> dict:
         
@@ -77,7 +76,7 @@ class BotsLongPoll:
         '''
         try:
             self.wait_for_response=True
-            logger.debug(f"Listening the BotsLongPoll server for events...")
+            self.logger.debug(f"Listening the BotsLongPoll server for events...")
             response = await httpClient.get(url=f"{self.__server__}",
                                             params={
                                                 "act": "a_check",
@@ -86,11 +85,11 @@ class BotsLongPoll:
                                                 "wait": self.__wait__
                                             },
                                             raw=False)
-            logger.debug(f"Got an event: {response}")
+            self.logger.debug(f"Got an event: {response}")
             self.wait_for_response=False
             return response
         except KeyError as ex:
-            logger.error(f"Unable to find key: {ex} {response}")
+            self.logger.error(f"Unable to find key: {ex} {response}")
     
     async def listen(self):
 
@@ -98,7 +97,7 @@ class BotsLongPoll:
         Listening for events
         '''
         try:
-            logger.debug(f"Polling was started")
+            self.logger.debug(f"Polling was started")
             while not self.__stop__:
                 event = await self.check_event()
 
@@ -116,15 +115,16 @@ class BotsLongPoll:
                 yield event
             
         except asyncio.CancelledError:
-            logger.warning(f"Polling was forcibly canceled (it is not recommend to do this)")
+            self.logger.warning(f"Listening was forcibly canceled (it is not recommend to do this)")
         finally:
             await httpClient.close()
-            logger.debug(f"Polling was stopped")
+            await self.api.close()
+            self.logger.info(f"Polling was stopped")
         
     def stop(self):
-        logger.debug(f"Polling will be stopped as soon as the current event is recieved")
+        self.logger.info(f"Polling will be stopped as soon as the current request will be done. Please wait")
         self.__stop__ = True
     
     async def cancelPolling(self):
         await httpClient.close()
-        logger.warning(f"Polling was cancelled. HttpClient was closed")
+        self.logger.warning(f"Polling was cancelled. HttpClient was closed")
