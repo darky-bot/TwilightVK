@@ -1,7 +1,4 @@
 from .api import BaseMethodsGroup
-from ...utils.config_loader import Configuration
-
-CONFIG = Configuration().get_config()
 
 class Groups(BaseMethodsGroup):
     
