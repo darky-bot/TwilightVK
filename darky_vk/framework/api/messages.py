@@ -1,3 +1,4 @@
+
 from .api import BaseMethodsGroup
 
 class Messages(BaseMethodsGroup):

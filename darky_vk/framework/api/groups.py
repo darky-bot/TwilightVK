@@ -20,3 +20,4 @@ class Groups(BaseMethodsGroup):
         response = await self.base_api.base_get_method(api_method=f"{self.method}.getLongPollServer",
                                                        values=values)
         return response
+    

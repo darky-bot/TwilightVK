@@ -56,6 +56,9 @@ class BotsLongPoll:
         self.vk_methods = VkMethods(self.api)
         self.logger = DarkyLogger("botlongpoll", configuration=CONFIG.LOGGER)
     
+    async def get_vk_methods(self):
+        return self.vk_methods
+    
     async def auth(self):
 
         '''

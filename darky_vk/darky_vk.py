@@ -13,6 +13,8 @@ from .logger.darky_visual import Visual, STYLE, FG
 from .utils.config_loader import Configuration
 from .framework.handlers.exceptions import InitError
 from .framework.bot_longpoll import BotsLongPoll
+from .framework.api.api import VkBaseMethods
+from .framework.api.methods import VkMethods
 
 BASE_DIR = Path(__file__).resolve().parent
 ASSETS = BASE_DIR / "assets"
@@ -47,6 +49,7 @@ class DarkyVK:
         self.__bot__ = BotsLongPoll(self.__access_token__,
                                     self.__group_id__,
                                     self.__api_version__)
+        self.methods = None
         self.logger = DarkyLogger(logger_name="DARKY_VK", configuration=CONFIG.LOGGER)
 
         if ACCESS_TOKEN == None:
@@ -59,6 +62,7 @@ class DarkyVK:
         try:
             self.logger.info(f"{FG.BLUE}DarkyVK is started{STYLE.RESET}")
             await self.__bot__.auth()
+            self.methods = await self.__bot__.get_vk_methods()
             async for event in self.__bot__.listen():
                 ...
         except asyncio.CancelledError:
