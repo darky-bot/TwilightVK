@@ -28,7 +28,7 @@ class DarkyLogger:
         }
     }
 
-    def __init__(self, logger_name:str=None, configuration:dict=None, ansi:bool=True) -> None:
+    def __init__(self, logger_name:str=None, configuration:dict=None, ansi:bool=True, silent:bool=False) -> None:
 
         r'''
         Класс DarkyLogger позволяет удобно и быстро инициализировать работу логгера logging
@@ -81,7 +81,8 @@ class DarkyLogger:
 
         logging.config.dictConfig(configuration)
         self.__logger__ = logging.getLogger(logger_name)
-        self.__logger__.debug(f"DarkyLogger initiated")
+        if not silent:
+            self.__logger__.debug(f"DarkyLogger initiated")
     
     def debug(self,
               msg:str,

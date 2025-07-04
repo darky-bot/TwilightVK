@@ -51,6 +51,7 @@ class BotsLongPoll:
         self.__wait__ = CONFIG.vk_api.wait
         self.authorized = False
         self.wait_for_response = False
+        self.validator = ResponseValidator()
         self.api = VkBaseMethods(self.__api_url__, self.__access_token__)
         self.vk_methods = VkMethods(self.api)
         self.logger = DarkyLogger("botlongpoll", configuration=CONFIG.LOGGER)
@@ -93,7 +94,7 @@ class BotsLongPoll:
                                             },
                                             raw=True)
             self.logger.debug(f"Validating response for event...")
-            response = await ResponseValidator().validate(response)
+            response = await self.validator.validate(response)
             self.logger.debug(f"Got an event: {response}")
             self.wait_for_response=False
 

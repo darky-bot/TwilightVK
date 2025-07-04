@@ -16,7 +16,7 @@ class ResponseValidator:
             "error": None,
             "updates": None
         }
-        self.logger = DarkyLogger("resp-validator", CONFIG.LOGGER)
+        self.logger = DarkyLogger("resp-validator", CONFIG.LOGGER, silent=True)
 
     def is_valid(self,
                  response:ClientResponse):
