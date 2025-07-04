@@ -5,6 +5,7 @@ from ..logger.darky_logger import DarkyLogger
 from ..logger.darky_visual import FG, STYLE
 from ..http.async_http import Http
 from .api.api import VkBaseMethods
+from .api.methods import VkMethods
 from .validators.response_validator import ResponseValidator
 
 CONFIG = Configuration().get_config()
@@ -12,9 +13,14 @@ httpClient = Http()
 
 class Event:
 
+    #TODO
+
     def __init__(self):
         ...
-        
+
+    def _parse_event(self):
+        ...
+
 
 class BotsLongPoll:
 
@@ -46,6 +52,7 @@ class BotsLongPoll:
         self.authorized = False
         self.wait_for_response = False
         self.api = VkBaseMethods(self.__api_url__, self.__access_token__)
+        self.vk_methods = VkMethods(self.api)
         self.logger = DarkyLogger("botlongpoll", configuration=CONFIG.LOGGER)
     
     async def auth(self):
@@ -57,12 +64,7 @@ class BotsLongPoll:
         try:
             self.logger.debug(f"Authorization...")
             self.logger.debug(f"Getting Bots LongPoll Server...")
-            response = await self.api.base_get_method(api_method="groups.getLongPollServer",
-                                        values={
-                                            "access_token":self.__access_token__,
-                                            "v": self.__api_version__,
-                                            "group_id": self.__group_id__
-                                        })
+            response = await self.vk_methods.groups.getLongPollServer(group_id=self.__group_id__)
 
             response = response["response"]
             self.logger.debug(f"Server aquired: {response}")
@@ -90,6 +92,7 @@ class BotsLongPoll:
                                                 "wait": self.__wait__
                                             },
                                             raw=True)
+            self.logger.debug(f"Validating response for event...")
             response = await ResponseValidator().validate(response)
             self.logger.debug(f"Got an event: {response}")
             self.wait_for_response=False

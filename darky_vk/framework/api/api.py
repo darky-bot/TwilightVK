@@ -30,7 +30,7 @@ class VkBaseMethods:
             response = await self.httpClient.get(url=f"{self.__url__}/method/{api_method}",
                                                 params=values,
                                                 raw=True)
-            self.logger.debug(f"Validating response...")
+            self.logger.debug(f"Validating response for {api_method}...")
             response = await self.validator.validate(response)
 
             self.logger.debug(f"Response for {api_method}: {response}")
@@ -53,7 +53,7 @@ class VkBaseMethods:
                                                 data=data,
                                                 headers=headers,
                                                 raw=True)
-            self.logger.debug(f"Validating response...")
+            self.logger.debug(f"Validating response  for {api_method}...")
             response = await self.validator.validate(response)
 
             self.logger.debug(f"Response for {api_method}: {response}")
@@ -65,3 +65,14 @@ class VkBaseMethods:
     async def close(self):
         self.logger.debug("VkBaseMethods was closed")
         await self.httpClient.close()
+
+
+class BaseMethodsGroup:
+
+    def __init__(self,
+                 baseMethods:VkBaseMethods):
+        self.__access_token__ = baseMethods.__token__
+        self.__api_version__ = CONFIG.vk_api.version
+        self.base_api = baseMethods
+        self.__class_name__ = self.__class__.__name__
+        self.method = f"{self.__class_name__[0].lower()}{self.__class_name__[1:]}"
