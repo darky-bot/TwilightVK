@@ -4,10 +4,17 @@ from ..utils.config_loader import Configuration
 from ..logger.darky_logger import DarkyLogger
 from ..logger.darky_visual import FG, STYLE
 from ..http.async_http import Http
-from .api.api import VkMethods
+from .api.api import VkBaseMethods
+from .validators.response_validator import ResponseValidator
 
 CONFIG = Configuration().get_config()
 httpClient = Http()
+
+class Event:
+
+    def __init__(self):
+        ...
+        
 
 class BotsLongPoll:
 
@@ -27,6 +34,7 @@ class BotsLongPoll:
         '''
 
         self.__stop__ = False
+        self.__is_polling__ = False
         self.__access_token__ = access_token
         self.__group_id__ = group_id
         self.__api_url__ = CONFIG.vk_api.server
@@ -37,7 +45,7 @@ class BotsLongPoll:
         self.__wait__ = CONFIG.vk_api.wait
         self.authorized = False
         self.wait_for_response = False
-        self.api = VkMethods(self.__api_url__, self.__access_token__)
+        self.api = VkBaseMethods(self.__api_url__, self.__access_token__)
         self.logger = DarkyLogger("botlongpoll", configuration=CONFIG.LOGGER)
     
     async def auth(self):
@@ -55,9 +63,6 @@ class BotsLongPoll:
                                             "v": self.__api_version__,
                                             "group_id": self.__group_id__
                                         })
-            
-            if "error" in response:
-                ...
 
             response = response["response"]
             self.logger.debug(f"Server aquired: {response}")
@@ -84,9 +89,16 @@ class BotsLongPoll:
                                                 "ts": self.__ts__,
                                                 "wait": self.__wait__
                                             },
-                                            raw=False)
+                                            raw=True)
+            response = await ResponseValidator().validate(response)
             self.logger.debug(f"Got an event: {response}")
             self.wait_for_response=False
+
+            if "ts" not in response:
+                self.auth()
+
+            self.__ts__ = response["ts"]
+            
             return response
         except KeyError as ex:
             self.logger.error(f"Unable to find key: {ex} {response}")
@@ -98,16 +110,9 @@ class BotsLongPoll:
         '''
         try:
             self.logger.debug(f"Polling was started")
+            self.__is_polling__ = True
             while not self.__stop__:
                 event = await self.check_event()
-
-                if "failed" in event:
-                    ...
-                
-                if "ts" not in event:
-                    self.auth()
-                
-                self.__ts__ = event["ts"]
                 
                 if "updates" not in event or event["updates"] == []:
                     continue
@@ -119,11 +124,13 @@ class BotsLongPoll:
         finally:
             await httpClient.close()
             await self.api.close()
-            self.logger.info(f"Polling was stopped")
+            self.__is_polling__ = False
+            self.logger.debug(f"Polling was stopped")
         
     def stop(self):
-        self.logger.info(f"Polling will be stopped as soon as the current request will be done. Please wait")
-        self.__stop__ = True
+        if self.__is_polling__:
+            self.logger.info(f"Polling will be stopped as soon as the current request will be done. Please wait")
+            self.__stop__ = True
     
     async def cancelPolling(self):
         await httpClient.close()

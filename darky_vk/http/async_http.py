@@ -8,7 +8,7 @@ class Http:
         '''
         self.session = None
 
-    async def get(self, url:str, params:dict=None, raw:bool=True) -> ClientResponse:
+    async def get(self, url:str, params:dict=None, raw:bool=True) -> ClientResponse | dict:
         '''
         HTTP GET method
 
@@ -27,7 +27,7 @@ class Http:
             return response
         return await response.json()
     
-    async def post(self, url:str, data:dict, params:dict, headers:dict=None, raw:bool=True) -> ClientResponse:
+    async def post(self, url:str, data:dict, params:dict, headers:dict=None, raw:bool=True) -> ClientResponse | dict:
         '''
         HTTP POST method
 

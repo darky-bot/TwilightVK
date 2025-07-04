@@ -68,8 +68,11 @@ class DarkyVK:
             self.logger.info(f"{FG.RED}DarkyVK has been stopped!{STYLE.RESET}")
 
     def stop(self):
-        self.logger.debug(f"DarkyVK was asked to stop")
-        self.__bot__.stop()
+        if self.__bot__.__is_polling__:
+            self.logger.debug(f"DarkyVK was asked to stop")
+            self.__bot__.stop()
+        else:
+            self.logger.debug(f"DarkyVK was already stopped")
 
 
 class DarkyAPI:
@@ -195,6 +198,7 @@ class DarkyAPI:
             '''Here is the shutdown code'''
             for callback in self.__shutdown_callbacks__:
                 await self.__callback_func__(callback)
+            self.__uvicorn_server__.started = False
             self.logger.info(f"{FG.RED}Darky API has been stopped{STYLE.RESET}")
         except Exception as e:
             self.logger.error(f"Error in API: {e}")
