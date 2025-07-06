@@ -97,7 +97,7 @@ class STYLE(Visual):
             if not isinstance(text, list):
                 lines = text.split('\n')
             else:
-                lines = text
+                lines = text.copy()
             for line in range(len(lines)):
                 lines[line] = STYLE.GRADIENT(lines[line], colors, mode)
             return f"{'\n'.join(lines)}{STYLE.RESET}"

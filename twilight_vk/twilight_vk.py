@@ -8,7 +8,7 @@ from fastapi import FastAPI, APIRouter
 from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 
-from .components.logo import printLogo
+from .components.logo import LogoComponent
 from .logger.darky_logger import DarkyLogger
 from .logger.darky_visual import Visual, STYLE, FG
 from .utils.config_loader import Configuration
@@ -55,6 +55,7 @@ class TwilightVK:
                                     self.__group_id__,
                                     self.__api_version__)
         self.methods = None
+        self.logo = LogoComponent()
         self.logger = DarkyLogger(logger_name=f"twilight-vk", configuration=CONFIG.LOGGER)
 
         if ACCESS_TOKEN == None:
@@ -97,8 +98,15 @@ class TwilightVK:
             self.__bot__.__is_polling__ = False
         
     def start(self):
-        printLogo()
-        asyncio.run(self.run_polling())
+        try:
+            self.logger.info(self.logo.colored)
+            framework_task = asyncio.shield(asyncio.create_task(self.run_polling()))
+            asyncio.run(asyncio.gather(framework_task))
+        except KeyboardInterrupt:
+            self.logger.info(f"KeyboardInterrupt recieved. Shutting down(to force press Ctrl+C again)...")
+            self.__bot__.stop()
+        except Exception as ex:
+            self.logger.critical(f"Framework was crashed", exc_info=True)
 
     def stop(self):
         if self.__bot__.__is_polling__ or self.__bot__.wait_for_response:
@@ -159,11 +167,12 @@ class TwilightAPI:
 
         self.__api__.include_router(self.__router__)
 
+        self.logo = LogoComponent()
         self.logger = DarkyLogger(logger_name=f"twilight-api", configuration=CONFIG.LOGGER)
 
     def start(self):
         try:
-            printLogo()
+            self.logger.info(self.logo.colored)
             self.logger.info(f"Starting...")
             self.__loop__.run_until_complete(self._run_threads())
         except KeyboardInterrupt:

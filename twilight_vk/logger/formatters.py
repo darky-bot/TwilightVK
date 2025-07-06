@@ -82,6 +82,8 @@ class DarkyConsoleFormatter(logging.Formatter):
                 record_copy.name = f"{STYLE.GRADIENT(f"{record_copy.name}", ["#44F", "#A6F"])}{STYLE.RESET}"
             else:
                 record_copy.name = self.name_color % record_copy.name
+            if record_copy.levelname == "CRITICAL":
+                record_copy.msg = f"{FG.RED}{record_copy.msg}{STYLE.RESET}"
             record_copy.levelname = self.color_levename(record_copy.levelname)
         record_copy.name = record_copy.name + " " * (15 - len(record.name))
         record_copy.levelname = record_copy.levelname + " " * (8 - len(record.levelname))
