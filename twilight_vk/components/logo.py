@@ -1,7 +1,17 @@
-from art import text2art
 from ..logger.darky_visual import STYLE, FG, BG
+from ..utils.config_loader import Configuration
+
+CONFIG = Configuration().get_config()
 
 def printLogo():
-    ansii_art = text2art("Twilight", font="alligator")
-    print(f"{STYLE.GRADIENT(text2art("Twilight", font="alligator"), ["#44F", "#D4F"])}")
-    print(f"{FG.BLACK}{STYLE.GRADIENT(f"VERSION: 0.0.1{" "*80}developed by darky_wings", ["#44F", "#D4F"], "BG")}{STYLE.RESET}")
+    logo = [
+        "  :::::::::::     :::       :::       :::::::::::       :::        :::::::::::       ::::::::       :::    :::   :::::::::::",
+        "     :+:         :+:       :+:           :+:           :+:            :+:          :+:    :+:      :+:    :+:       :+:     ",
+        "    +:+         +:+       +:+           +:+           +:+            +:+          +:+             +:+    +:+       +:+      ",
+        "   +#+         +#+  +:+  +#+           +#+           +#+            +#+          :#:             +#++:++#++       +#+       ",
+        "  +#+         +#+ +#+#+ +#+           +#+           +#+            +#+          +#+   +#+#      +#+    +#+       +#+        ",
+        " #+#          #+#+# #+#+#            #+#           #+#            #+#          #+#    #+#      #+#    #+#       #+#         ",
+        "###           ###   ###         ###########       ########## ###########       ########       ###    ###       ###          "
+    ]
+    print(f"{STYLE.GRADIENT(logo, ["#44F", "#D0F"])}")
+    print(f"{FG.BLACK}{STYLE.GRADIENT(f"VERSION: {CONFIG.framework.version}{" "*85}developed by {CONFIG.framework.developer}", ["#44F", "#D4F"], "BG")}{STYLE.RESET}")

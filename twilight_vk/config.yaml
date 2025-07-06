@@ -1,5 +1,6 @@
 framework:
   version: "0.0.1"
+  developer: "darky_wings"
 
 api:
   host: 127.0.0.1
