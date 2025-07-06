@@ -7,7 +7,6 @@ import uvicorn
 from fastapi import FastAPI, APIRouter
 from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
-from art import text2art
 
 from .components.logo import printLogo
 from .logger.darky_logger import DarkyLogger

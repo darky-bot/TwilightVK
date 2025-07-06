@@ -35,7 +35,7 @@ JSON_LOGGER:
       colored: True
   handlers:
     console:
-      level: INFO
+      level: DEBUG
       class: "logging.StreamHandler"
       formatter: "console"
     uvicorn_access_console:
