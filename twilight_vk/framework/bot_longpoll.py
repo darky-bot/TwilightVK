@@ -119,7 +119,7 @@ class BotsLongPoll:
                     continue
 
                 yield event
-            
+        
         except asyncio.CancelledError:
             self.logger.warning(f"Listening was forcibly canceled (it is not recommend to do this)")
         finally:

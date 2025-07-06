@@ -25,6 +25,9 @@ JSON_LOGGER:
   version: 1
   disable_existing_loggers: False
   formatters:
+    file:
+      (): "twilight_vk.logger.formatters.DarkyFileFormatter"
+      fmt: "%(name)s | %(asctime)s | %(levelname)s | %(message)s"
     console:
       (): "twilight_vk.logger.formatters.DarkyConsoleFormatter"
       fmt: "%(name)s | %(asctime)s | %(levelname)s | %(message)s"
@@ -35,6 +38,13 @@ JSON_LOGGER:
       fmt: "%(name)s | %(asctime)s | %(levelname)s | %(client_addr)s - \"%(request_line)s\" %(status_code)s"
       colored: True
   handlers:
+    file:
+      level: DEBUG
+      class: "logging.handlers.RotatingFileHandler"
+      formatter: "file"
+      filename: "twilight.log"
+      backupCount: 1
+      encoding: "utf-8"
     console:
       level: DEBUG
       class: "logging.StreamHandler"
