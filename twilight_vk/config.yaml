@@ -4,8 +4,8 @@ framework:
 api:
   host: 127.0.0.1
   port: 8080
-  title: DarkyBot VK API
-  description: Welcome to the DarkyBot VK API!
+  title: Twilight VK API
+  description: Welcome to the Twilight VK API!
   routes:
     ping:
       name: Ping the API
@@ -25,11 +25,12 @@ JSON_LOGGER:
   disable_existing_loggers: False
   formatters:
     console:
-      (): "darky_vk.logger.formatters.DarkyConsoleFormatter"
+      (): "twilight_vk.logger.formatters.DarkyConsoleFormatter"
       fmt: "%(name)s | %(asctime)s | %(levelname)s | %(message)s"
       colored: True
+      color_core_name: True
     uvicorn_access_console:
-      (): "darky_vk.logger.formatters.UvicornAccessFormatter"
+      (): "twilight_vk.logger.formatters.UvicornAccessFormatter"
       fmt: "%(name)s | %(asctime)s | %(levelname)s | %(client_addr)s - \"%(request_line)s\" %(status_code)s"
       colored: True
   handlers:
@@ -42,11 +43,11 @@ JSON_LOGGER:
       class: "logging.StreamHandler"
       formatter: "uvicorn_access_console"
   loggers:
-    DARKY_API:
+    twilight-api:
       handlers: ["console"]
       level: DEBUG
       propagate: False
-    DARKY_VK:
+    twilight-vk:
       handlers: ["console"]
       level: DEBUG
       propagate: False

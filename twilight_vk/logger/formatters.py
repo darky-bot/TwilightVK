@@ -26,7 +26,8 @@ class DarkyConsoleFormatter(logging.Formatter):
             fmt: str | None = None,
             datefmt: str | None = None,
             style: Literal["%", "{", "$"] = "%",
-            colored: Literal[True, False] = False
+            colored: Literal[True, False] = False,
+            color_core_name: Literal[True, False] = False
     ):
         '''
         Initializes the console formatter for logging module
@@ -43,6 +44,7 @@ class DarkyConsoleFormatter(logging.Formatter):
         :type colored: bool
         '''
         self.colored = colored
+        self.color_core_name = color_core_name
         super().__init__(fmt=fmt, datefmt=datefmt, style=style)
     
     def color_levename(self, levelname: str) -> str:
@@ -76,7 +78,10 @@ class DarkyConsoleFormatter(logging.Formatter):
         '''
         record_copy = copy(record)
         if self.colored:
-            record_copy.name = self.name_color % record_copy.name
+            if self.color_core_name and "twilight" in record_copy.name:
+                record_copy.name = f"{STYLE.GRADIENT(f"{record_copy.name}", ["#44F", "#A6F"])}{STYLE.RESET}"
+            else:
+                record_copy.name = self.name_color % record_copy.name
             record_copy.levelname = self.color_levename(record_copy.levelname)
         record_copy.name = record_copy.name + " " * (15 - len(record.name))
         record_copy.levelname = record_copy.levelname + " " * (8 - len(record.levelname))

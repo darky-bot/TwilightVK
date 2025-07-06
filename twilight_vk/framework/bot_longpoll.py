@@ -11,16 +11,6 @@ from .validators.response_validator import ResponseValidator
 CONFIG = Configuration().get_config()
 httpClient = Http()
 
-class Event:
-
-    #TODO
-
-    def __init__(self):
-        ...
-
-    def _parse_event(self):
-        ...
-
 
 class BotsLongPoll:
 
@@ -52,8 +42,8 @@ class BotsLongPoll:
         self.authorized = False
         self.wait_for_response = False
         self.validator = ResponseValidator()
-        self.api = VkBaseMethods(self.__api_url__, self.__access_token__)
-        self.vk_methods = VkMethods(self.api)
+        self.base_methods = VkBaseMethods(self.__api_url__, self.__access_token__)
+        self.vk_methods = VkMethods(self.base_methods)
         self.logger = DarkyLogger("botlongpoll", configuration=CONFIG.LOGGER)
     
     async def get_vk_methods(self):
@@ -67,15 +57,19 @@ class BotsLongPoll:
 
         try:
             self.logger.debug(f"Authorization...")
-            self.logger.debug(f"Getting Bots LongPoll Server...")
-            response = await self.vk_methods.groups.getLongPollServer(group_id=self.__group_id__)
 
+            self.logger.debug(f"Getting Bots LongPoll Server...")
+            self.wait_for_response = True
+            response = await self.vk_methods.groups.getLongPollServer(group_id=self.__group_id__)
             response = response["response"]
+            self.wait_for_response = False
             self.logger.debug(f"Server aquired: {response}")
+
             self.__key__ = response["key"]
             self.__server__ = response["server"]
             self.__ts__ = response["ts"]
             self.authorized = True
+
             self.logger.debug(f"Authorized")
         except KeyError as ex:
             self.logger.error(f"Unable to find key: {ex} {response}")
@@ -130,15 +124,11 @@ class BotsLongPoll:
             self.logger.warning(f"Listening was forcibly canceled (it is not recommend to do this)")
         finally:
             await httpClient.close()
-            await self.api.close()
+            await self.base_methods.close()
             self.__is_polling__ = False
             self.logger.debug(f"Polling was stopped")
         
     def stop(self):
-        if self.__is_polling__:
+        if self.__is_polling__ or self.wait_for_response:
             self.logger.info(f"Polling will be stopped as soon as the current request will be done. Please wait")
             self.__stop__ = True
-    
-    async def cancelPolling(self):
-        await httpClient.close()
-        self.logger.warning(f"Polling was cancelled. HttpClient was closed")

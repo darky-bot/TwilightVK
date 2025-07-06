@@ -2,8 +2,8 @@ import pytest
 import asyncio
 from fastapi.testclient import TestClient
 
-from darky_vk import DarkyVK, DarkyAPI
-from darky_vk.handlers.exceptions import AuthError
+from twilight_vk import DarkyVK, DarkyAPI
+from twilight_vk.handlers.exceptions import AuthError
 
 @pytest.mark.asyncio
 async def test_with_no_parameters():
