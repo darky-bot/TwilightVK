@@ -46,20 +46,39 @@ class DarkyVK:
         self.__access_token__ = ACCESS_TOKEN
         self.__group_id__ = GROUP_ID
         self.__api_version__ = API_VERSION
+        
+        self.__startup_callbacks__: List[Callable] = []
+        self.__shutdown_callbacks__: List[Callable] = []
+
         self.__bot__ = BotsLongPoll(self.__access_token__,
                                     self.__group_id__,
                                     self.__api_version__)
         self.methods = None
-        self.logger = DarkyLogger(logger_name="DARKY_VK", configuration=CONFIG.LOGGER)
+        self.logger = DarkyLogger(logger_name="darky-vk", configuration=CONFIG.LOGGER)
 
         if ACCESS_TOKEN == None:
             raise InitError("ACCESS_TOKEN is None!")
         
         if GROUP_ID == None:
             raise InitError("GROUP_ID is None!")
+    
+    def on_startup(self, func):
+        self.__startup_callbacks__.append(func)
+    
+    def on_shutdown(self, func):
+        self.__shutdown_callbacks__.append(func)
+    
+    @staticmethod
+    async def __callback_func__(func):
+        if asyncio.iscoroutinefunction(func):
+            await func()
+        else:
+            func()
 
     async def run_polling(self):
         try:
+            for callback in self.__startup_callbacks__:
+                await self.__callback_func__(callback)
             self.logger.info(f"{FG.BLUE}DarkyVK is started{STYLE.RESET}")
             await self.__bot__.auth()
             self.methods = await self.__bot__.get_vk_methods()
@@ -69,10 +88,14 @@ class DarkyVK:
             self.logger.warning(f"Polling was forcibly canceled (it is not recommend to do this)")
             self.__bot__.stop()
         finally:
+            for callback in self.__shutdown_callbacks__:
+                await self.__callback_func__(callback)
             self.logger.info(f"{FG.RED}DarkyVK has been stopped!{STYLE.RESET}")
+            self.__bot__.wait_for_response = False
+            self.__bot__.__is_polling__ = False
 
     def stop(self):
-        if self.__bot__.__is_polling__:
+        if self.__bot__.__is_polling__ or self.__bot__.wait_for_response:
             self.logger.debug(f"DarkyVK was asked to stop")
             self.__bot__.stop()
         else:
@@ -130,7 +153,7 @@ class DarkyAPI:
 
         self.__api__.include_router(self.__router__)
 
-        self.logger = DarkyLogger(logger_name="DARKY_API", configuration=CONFIG.LOGGER)
+        self.logger = DarkyLogger(logger_name="darky-api", configuration=CONFIG.LOGGER)
 
     def start(self):
         try:
@@ -221,7 +244,10 @@ class DarkyAPI:
 
         self.logger.info("Shutdown initiated!")
         await asyncio.create_task(self.__shutdown_api__(force=force))
-        return {"response": "shutdown initiated!"}
+        return {"response": "shutdown initiated!",
+                "params": {
+                    "force": force
+                }}
     
     async def __shutdown_api__(self, force:bool=False):
 

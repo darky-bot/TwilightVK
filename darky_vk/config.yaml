@@ -42,11 +42,11 @@ JSON_LOGGER:
       class: "logging.StreamHandler"
       formatter: "uvicorn_access_console"
   loggers:
-    DARKY_API:
+    darky-api:
       handlers: ["console"]
       level: DEBUG
       propagate: False
-    DARKY_VK:
+    darky-vk:
       handlers: ["console"]
       level: DEBUG
       propagate: False

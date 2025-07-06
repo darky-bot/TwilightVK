@@ -36,7 +36,7 @@ class VkBaseMethods:
             self.logger.debug(f"Response for {api_method}: {response}")
             return response
         except Exception as ex:
-            self.logger.error(f"Error with calling {api_method}", exc_info=True)
+            self.logger.critical(f"Error with calling {api_method}", exc_info=True)
             await self.close()
         
     async def base_post_method(
@@ -59,7 +59,7 @@ class VkBaseMethods:
             self.logger.debug(f"Response for {api_method}: {response}")
             return response
         except Exception as ex:
-            self.logger.error(f"Error with calling {api_method}", exc_info=True)
+            self.logger.critical(f"Error with calling {api_method}", exc_info=True)
             await self.close()
     
     async def close(self):

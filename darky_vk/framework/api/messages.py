@@ -1,9 +1,9 @@
-
 from .api import BaseMethodsGroup
 
 class Messages(BaseMethodsGroup):
     
     #Это образец
+    #Примерный запрос к методу: https://api.vk.com/methods/messages.example
     async def example(self, peer_id) -> dict:
         values = {
             "peer_id": peer_id

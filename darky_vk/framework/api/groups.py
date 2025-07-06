@@ -6,15 +6,15 @@ class Groups(BaseMethodsGroup):
                                 group_id:int) -> dict:
         
         '''
-        Возвращает данные для подключения к Bots Longpoll API
-        
-        :param group_id: - Идентификатор сообщества.
+        Returns data for connection to Bots Longpoll API
+
+        :param group_id: - Group's ID
         :type group_id: int
         '''
 
         values = {
             "access_token": self.__access_token__,
-            "group_id": group_id,
+            "group_id": abs(group_id),
             "v": self.__api_version__
         }
         response = await self.base_api.base_get_method(api_method=f"{self.method}.getLongPollServer",

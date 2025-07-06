@@ -1,14 +1,19 @@
-from aiohttp import ClientSession, ClientResponse
+from aiohttp import ClientSession, ClientResponse, ClientTimeout
 
 class Http:
 
-    def __init__(self):
+    def __init__(self,
+                 timeout:int=30):
         '''
         This class allows to use HTTP requests asynchronously
         '''
         self.session = None
+        self.timeout = timeout
 
-    async def get(self, url:str, params:dict=None, raw:bool=True) -> ClientResponse | dict:
+    async def get(self,
+                  url:str,
+                  params:dict=None,
+                  raw:bool=True) -> ClientResponse | dict:
         '''
         HTTP GET method
 
@@ -21,13 +26,18 @@ class Http:
         :param raw: Defines the raw/json response
         :type raw: bool
         '''
-        if self.session is None: self.session = ClientSession()
+        if self.session is None: self.session = ClientSession(timeout=ClientTimeout(self.timeout))
         response = await self.session.get(url=url, params=params)
         if raw:
             return response
         return await response.json()
     
-    async def post(self, url:str, data:dict, params:dict, headers:dict=None, raw:bool=True) -> ClientResponse | dict:
+    async def post(self,
+                   url:str,
+                   data:dict,
+                   params:dict,
+                   headers:dict=None,
+                   raw:bool=True) -> ClientResponse | dict:
         '''
         HTTP POST method
 
@@ -43,7 +53,7 @@ class Http:
         :param raw: Defines the raw/json response
         :type raw: bool
         '''
-        if self.session is None: self.session = ClientSession()
+        if self.session is None: self.session = ClientSession(timeout=ClientTimeout(self.timeout))
         response = await self.session.post(url=url,
                                            params=params,
                                            json=data,
