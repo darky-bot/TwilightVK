@@ -69,7 +69,7 @@ class STYLE(Visual):
         return f"{Visual.prefix}{mode.replace("FG", "3").replace("BG", "4")}8;2;{r};{g};{b}m"
 
     @staticmethod
-    def GRADIENT(text:str, colors:list=["#FFFFFF"], mode:str="FG") -> str:
+    def GRADIENT(text:str|list[str], colors:list=["#FFFFFF"], mode:str="FG") -> str:
 
         '''
         Returns the prepared gradient text
@@ -93,8 +93,11 @@ class STYLE(Visual):
             return f"{STYLE.CUSTOM_COLOR(mode, colors[0])}{text}{STYLE.RESET}"
         
         #handling multilined text(ansii art support)
-        if "\n" in text:
-            lines = text.split('\n')
+        if "\n" in text or isinstance(text, list):
+            if not isinstance(text, list):
+                lines = text.split('\n')
+            else:
+                lines = text
             for line in range(len(lines)):
                 lines[line] = STYLE.GRADIENT(lines[line], colors, mode)
             return f"{'\n'.join(lines)}{STYLE.RESET}"
