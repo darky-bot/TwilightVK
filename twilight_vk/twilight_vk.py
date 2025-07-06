@@ -47,6 +47,10 @@ class TwilightVK:
         self.__access_token__ = ACCESS_TOKEN
         self.__group_id__ = GROUP_ID
         self.__api_version__ = API_VERSION
+
+        self.__loop__ = asyncio.new_event_loop()
+
+        self.__framework_task__ = None
         
         self.__startup_callbacks__: List[Callable] = []
         self.__shutdown_callbacks__: List[Callable] = []
@@ -96,15 +100,19 @@ class TwilightVK:
             self.logger.info(f"{FG.RED}TwilightVK has been stopped!{STYLE.RESET}")
             self.__bot__.wait_for_response = False
             self.__bot__.__is_polling__ = False
+
+    async def _run(self):
+        self.__framework_task__ = asyncio.create_task(self.run_polling())
+        await asyncio.gather(
+                self.__framework_task__,
+                return_exceptions=True)
         
     def start(self):
         try:
             self.logger.info(self.logo.colored)
-            framework_task = asyncio.shield(asyncio.create_task(self.run_polling()))
-            asyncio.run(asyncio.gather(framework_task))
+            asyncio.shield(asyncio.run(self._run()))
         except KeyboardInterrupt:
-            self.logger.info(f"KeyboardInterrupt recieved. Shutting down(to force press Ctrl+C again)...")
-            self.__bot__.stop()
+            self.logger.info(f"KeyboardInterrupt recieved!")
         except Exception as ex:
             self.logger.critical(f"Framework was crashed", exc_info=True)
 
