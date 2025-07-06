@@ -7,7 +7,9 @@ import uvicorn
 from fastapi import FastAPI, APIRouter
 from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
+from art import text2art
 
+from .components.logo import printLogo
 from .logger.darky_logger import DarkyLogger
 from .logger.darky_visual import Visual, STYLE, FG
 from .utils.config_loader import Configuration
@@ -23,7 +25,7 @@ CONFIG = Configuration().get_config()
 
 Visual.ansi()
    
-class DarkyVK:
+class TwilightVK:
 
     def __init__(self, 
                  ACCESS_TOKEN:str=None, 
@@ -31,7 +33,7 @@ class DarkyVK:
                  API_VERSION:str=CONFIG.vk_api.version) -> None:
 
         '''
-        Initializes DarkyVK as module
+        Initializes TwilightVK as module
 
         :param ACCESS_TOKEN: your group's access token, you can find it here(https://dev.vk.com/ru/api/access-token/community-token/in-community-settings)
         :type ACCESS_TOKEN: str
@@ -54,7 +56,7 @@ class DarkyVK:
                                     self.__group_id__,
                                     self.__api_version__)
         self.methods = None
-        self.logger = DarkyLogger(logger_name="darky-vk", configuration=CONFIG.LOGGER)
+        self.logger = DarkyLogger(logger_name=f"twilight-vk", configuration=CONFIG.LOGGER)
 
         if ACCESS_TOKEN == None:
             raise InitError("ACCESS_TOKEN is None!")
@@ -77,9 +79,10 @@ class DarkyVK:
 
     async def run_polling(self):
         try:
+            self.logger.info(f"Starting the TwilightVK framework...")
             for callback in self.__startup_callbacks__:
                 await self.__callback_func__(callback)
-            self.logger.info(f"{FG.BLUE}DarkyVK is started{STYLE.RESET}")
+            self.logger.info(f"{FG.BLUE}TwilightVK is started{STYLE.RESET}")
             await self.__bot__.auth()
             self.methods = await self.__bot__.get_vk_methods()
             async for event in self.__bot__.listen():
@@ -90,19 +93,23 @@ class DarkyVK:
         finally:
             for callback in self.__shutdown_callbacks__:
                 await self.__callback_func__(callback)
-            self.logger.info(f"{FG.RED}DarkyVK has been stopped!{STYLE.RESET}")
+            self.logger.info(f"{FG.RED}TwilightVK has been stopped!{STYLE.RESET}")
             self.__bot__.wait_for_response = False
             self.__bot__.__is_polling__ = False
+        
+    def start(self):
+        printLogo()
+        asyncio.run(self.run_polling())
 
     def stop(self):
         if self.__bot__.__is_polling__ or self.__bot__.wait_for_response:
-            self.logger.debug(f"DarkyVK was asked to stop")
+            self.logger.debug(f"TwilightVK was asked to stop")
             self.__bot__.stop()
         else:
-            self.logger.debug(f"DarkyVK was already stopped")
+            self.logger.debug(f"TwilightVK was already stopped")
 
 
-class DarkyAPI:
+class TwilightAPI:
 
     def __init__(self,
                  HOST:str=CONFIG.api.host,
@@ -110,7 +117,7 @@ class DarkyAPI:
                  FRAMEWORK:object=None):
         
         '''
-        Initializes DarkyVK as separate API
+        Initializes TwilightVK as separate API
         
         :param HOST: sets the host ip adress for API
         :type HOST: str
@@ -153,10 +160,11 @@ class DarkyAPI:
 
         self.__api__.include_router(self.__router__)
 
-        self.logger = DarkyLogger(logger_name="darky-api", configuration=CONFIG.LOGGER)
+        self.logger = DarkyLogger(logger_name=f"twilight-api", configuration=CONFIG.LOGGER)
 
     def start(self):
         try:
+            printLogo()
             self.logger.info(f"Starting...")
             self.__loop__.run_until_complete(self._run_threads())
         except KeyboardInterrupt:
@@ -214,19 +222,20 @@ class DarkyAPI:
         '''
         try:
             '''Here is the startup code'''
+            self.logger.info(f"Starting the Twilight API...")
             for callback in self.__startup_callbacks__:
                 await self.__callback_func__(callback)
             if self.__framework__ == None:
                 self.logger.warning(f"Framework was not configured!")
-                self.logger.info(f"Initializing default DarkyVK...")
-                self.__framework__ = DarkyVK("123", 123)
-            self.logger.info(f"{FG.BLUE}Darky API is started{STYLE.RESET} (on {CONFIG.api.host}:{CONFIG.api.port})")
+                self.logger.info(f"Initializing default TwilightVK...")
+                self.__framework__ = TwilightVK("123", 123)
+            self.logger.info(f"{FG.BLUE}Twilight API is started{STYLE.RESET} (on {CONFIG.api.host}:{CONFIG.api.port})")
             yield
             '''Here is the shutdown code'''
             for callback in self.__shutdown_callbacks__:
                 await self.__callback_func__(callback)
             self.__uvicorn_server__.started = False
-            self.logger.info(f"{FG.RED}Darky API has been stopped{STYLE.RESET}")
+            self.logger.info(f"{FG.RED}Twilight API has been stopped{STYLE.RESET}")
         except Exception as e:
             self.logger.error(f"Error in API: {e}")
             await self.__shutdown_api__()

@@ -86,9 +86,19 @@ class STYLE(Visual):
         :type colors: list
         '''
 
+        if len(colors) == 0:
+            return text
+
         if len(colors) == 1:
             return f"{STYLE.CUSTOM_COLOR(mode, colors[0])}{text}{STYLE.RESET}"
         
+        #handling multilined text(ansii art support)
+        if "\n" in text:
+            lines = text.split('\n')
+            for line in range(len(lines)):
+                lines[line] = STYLE.GRADIENT(lines[line], colors, mode)
+            return f"{'\n'.join(lines)}{STYLE.RESET}"
+
         rgb = [Visual.hex_to_rgb(color) for color in colors]
 
         segment = len(text) // (len(colors)-1) #HelloWorld (RED to BLUE) segment = 10 // (2-1) 10
