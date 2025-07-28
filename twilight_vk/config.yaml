@@ -12,7 +12,7 @@ api:
       name: Ping the API
       description: Pings the server and bot's API
     stop:
-      name: Stop the bot
+      name: Stop framework
       description: Stops the bot and its API
   version: 0.0.1
 

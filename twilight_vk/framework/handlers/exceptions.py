@@ -1,23 +1,25 @@
-class DarkyError(Exception):
+from aiohttp import ClientResponse
+
+class FrameworkError(Exception):
     pass
     
-class InitError(DarkyError):
+class InitError(FrameworkError):
     pass
 
-class ValidationError(DarkyError):
-    pass
+class HttpValidationError(FrameworkError):
+    
+    def __init__(self,
+                 isValid:bool,
+                 isSuccess:bool,
+                 response:ClientResponse):
+        self.isRaw = isValid
+        self.isSuccess = isSuccess
+        self.response = response
 
 
 
-class VkApiError(DarkyError):
+class VkApiError(FrameworkError):
     pass
 
 class AuthError(VkApiError):
-    pass
-
-
-class HttpError(DarkyError):
-    pass
-
-class IsNotSuccessCode(HttpError):
     pass

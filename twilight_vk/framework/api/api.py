@@ -3,7 +3,8 @@ from aiohttp import ClientResponse
 from ...http.async_http import Http
 from ...logger.darky_logger import DarkyLogger
 from ...utils.config_loader import Configuration
-from ..validators.response_validator import ResponseValidator
+from ..validators.http_validator import HttpValidator
+from ..validators.event_validator import EventValidator
 
 CONFIG = Configuration().get_config()
 
@@ -16,7 +17,8 @@ class VkBaseMethods:
         self.__url__ = url
         self.__token__ = token
         self.validate = validate_response
-        self.validator = ResponseValidator()
+        self.httpValidator = HttpValidator()
+        self.eventValidator = EventValidator()
         self.httpClient = Http()
         self.logger = DarkyLogger("vk-methods", configuration=CONFIG.LOGGER)
 
@@ -30,13 +32,13 @@ class VkBaseMethods:
             response = await self.httpClient.get(url=f"{self.__url__}/method/{api_method}",
                                                 params=values,
                                                 raw=True)
-            self.logger.debug(f"Validating response for {api_method}...")
-            response = await self.validator.validate(response)
+            response = await self.httpValidator.validate(response)
+            response = await self.eventValidator.validate(response)
 
             self.logger.debug(f"Response for {api_method}: {response}")
             return response
         except Exception as ex:
-            self.logger.critical(f"Error with calling {api_method}", exc_info=True)
+            self.logger.error(f"Error with calling {api_method}", exc_info=True)
             await self.close()
         
     async def base_post_method(
@@ -53,13 +55,13 @@ class VkBaseMethods:
                                                 data=data,
                                                 headers=headers,
                                                 raw=True)
-            self.logger.debug(f"Validating response  for {api_method}...")
-            response = await self.validator.validate(response)
+            response = await self.httpValidator.validate(response)
+            response = await self.eventValidator.validate(response)
 
             self.logger.debug(f"Response for {api_method}: {response}")
             return response
         except Exception as ex:
-            self.logger.critical(f"Error with calling {api_method}", exc_info=True)
+            self.logger.error(f"Error with calling {api_method}", exc_info=True)
             await self.close()
     
     async def close(self):

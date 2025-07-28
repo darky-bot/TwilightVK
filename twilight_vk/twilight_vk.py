@@ -14,8 +14,7 @@ from .logger.darky_visual import Visual, STYLE, FG
 from .utils.config_loader import Configuration
 from .framework.handlers.exceptions import InitError
 from .framework.bot_longpoll import BotsLongPoll
-from .framework.api.api import VkBaseMethods
-from .framework.api.methods import VkMethods
+from .http.async_http import Http
 
 BASE_DIR = Path(__file__).resolve().parent
 ASSETS = BASE_DIR / "assets"
@@ -43,6 +42,8 @@ class TwilightVK:
         :param API_VERSION: version of VK API, by default its grabbed from the frameworks's default configuration
         :type API_VERSION: str | None
         '''
+
+        self.is_started = False
 
         self.__access_token__ = ACCESS_TOKEN
         self.__group_id__ = GROUP_ID
@@ -84,22 +85,26 @@ class TwilightVK:
     async def run_polling(self):
         try:
             self.logger.info(f"Starting the TwilightVK framework...")
+            self.is_started = True
             for callback in self.__startup_callbacks__:
                 await self.__callback_func__(callback)
-            self.logger.info(f"{FG.BLUE}TwilightVK is started{STYLE.RESET}")
             await self.__bot__.auth()
+            self.logger.info(f"{FG.BLUE}TwilightVK is started{STYLE.RESET}")
             self.methods = await self.__bot__.get_vk_methods()
             async for event in self.__bot__.listen():
                 ...
         except asyncio.CancelledError:
             self.logger.warning(f"Polling was forcibly canceled (it is not recommend to do this)")
             self.__bot__.stop()
+        except Exception as exc:
+            self.logger.critical(f"Framework was crashed with critical unhandled error", exc_info=True)
         finally:
             for callback in self.__shutdown_callbacks__:
                 await self.__callback_func__(callback)
             self.logger.info(f"{FG.RED}TwilightVK has been stopped!{STYLE.RESET}")
             self.__bot__.wait_for_response = False
             self.__bot__.__is_polling__ = False
+            self.is_started = False
 
     async def _run(self):
         self.__framework_task__ = asyncio.create_task(self.run_polling())
@@ -110,11 +115,17 @@ class TwilightVK:
     def start(self):
         try:
             self.logger.info(self.logo.colored)
-            asyncio.shield(asyncio.run(self._run()))
+            self.__loop__.run_until_complete(self._run())
         except KeyboardInterrupt:
             self.logger.info(f"KeyboardInterrupt recieved!")
         except Exception as ex:
             self.logger.critical(f"Framework was crashed", exc_info=True)
+        finally:
+            self.__loop__.run_until_complete(self.__loop__.shutdown_asyncgens())
+            self.__loop__.close()
+    
+    def __get_async_loop__(self):
+        return self.__loop__
 
     def stop(self):
         if self.__bot__.__is_polling__ or self.__bot__.wait_for_response:
@@ -129,7 +140,7 @@ class TwilightAPI:
     def __init__(self,
                  HOST:str=CONFIG.api.host,
                  PORT:str=CONFIG.api.port,
-                 FRAMEWORK:object=None):
+                 FRAMEWORK:TwilightVK=None):
         
         '''
         Initializes TwilightVK as separate API
@@ -159,18 +170,30 @@ class TwilightAPI:
             )
         self.__framework__ = FRAMEWORK
 
-        self.__loop__ = asyncio.new_event_loop()
+        self.__loop__ = self.__framework__.__get_async_loop__()
 
         self.__api_task__ = None
         self.__framework_task__ = None
 
-        self.__router__ = APIRouter()
+        uvicorn_config = uvicorn.Config(
+                app=self.__api__,
+                host=self.__HOST__,
+                port=self.__PORT__,
+                log_config=CONFIG.LOGGER
+            )
+        self.__uvicorn_server__ = uvicorn.Server(uvicorn_config)
+
+        self.__router__ = APIRouter(
+            prefix="/api"
+        )
         self.__router__.add_api_route("/ping", self.ping, methods=["GET"], 
                                   tags=["API"], name=CONFIG.api.routes.ping.name,
                                   description=CONFIG.api.routes.ping.description)
         self.__router__.add_api_route("/stop", self.stop, methods=["GET"],
                                       tags=["API"], name=CONFIG.api.routes.stop.name,
                                       description=CONFIG.api.routes.stop.description)
+        self.__router__.add_api_route("/stopApi", self.__stopApi__, methods=["GET"],
+                                      include_in_schema=False)
         self.__router__.add_api_route("/favicon.ico", self.favicon, include_in_schema=False, methods=["GET"])
 
         self.__api__.include_router(self.__router__)
@@ -182,30 +205,19 @@ class TwilightAPI:
         try:
             self.logger.info(self.logo.colored)
             self.logger.info(f"Starting...")
-            self.__loop__.run_until_complete(self._run_threads())
+            self.__loop__.run_until_complete(self._run_tasks())
         except KeyboardInterrupt:
             self.logger.warning(f"KeyboardInterrupt recieved, shutting down...")
-            self.__loop__.run_until_complete(self.__shutdown_api__(force=True))
+            self.__loop__.run_until_complete(self.__shutdown__(force=True))
         except Exception as ex:
-            self.logger.error(f"Error while starting: {ex}")
+            self.logger.critical(f"Unhandled error", exc_info=True)
         finally:
             self.__loop__.run_until_complete(self.__loop__.shutdown_asyncgens())
             self.__loop__.close()
 
-    async def _run_threads(self):
+    async def _run_tasks(self):
         try:
-            uvicorn_config = uvicorn.Config(
-                app=self.__api__,
-                host=self.__HOST__,
-                port=self.__PORT__,
-                log_config=CONFIG.LOGGER
-            )
-            self.__uvicorn_server__ = uvicorn.Server(uvicorn_config)
-            
-            while self.__framework__ == None:
-                pass
-            
-            self.__api_task__ = asyncio.shield(asyncio.create_task(self.__uvicorn_server__.serve()))
+            self.__api_task__ = asyncio.create_task(self.__uvicorn_server__.serve())
             self.__framework_task__ = asyncio.create_task(self.__framework__.run_polling())
 
             await asyncio.gather(
@@ -214,8 +226,8 @@ class TwilightAPI:
                 return_exceptions=True)
             
         except Exception as e:
-            self.logger.error(f"Failed to start API: {e}")
-            await self.__shutdown_api__()
+            self.logger.error(f"Unhandled error", exc_info=True)
+            await self.__shutdown__()
     
     def on_startup(self, func):
         self.__startup_callbacks__.append(func)
@@ -254,10 +266,30 @@ class TwilightAPI:
             self.logger.info(f"{FG.RED}Twilight API has been stopped{STYLE.RESET}")
         except Exception as e:
             self.logger.error(f"Error in API: {e}")
-            await self.__shutdown_api__()
+            await self.__shutdown__()
 
     async def get_api(self) -> FastAPI:
         return self.__api__
+    
+    async def __shutdown__(self, force:bool=False):
+        await self.__stopApi__()
+        await self.__stopFramework__(force)
+    
+    async def __stopApi__(self):
+        if self.__uvicorn_server__.started:
+            self.logger.debug(f"Shutting down the API...")
+            self.__uvicorn_server__.should_exit = True
+            await asyncio.sleep(0.1)
+    
+    async def __stopFramework__(self, force:bool=False):
+        if self.__framework__.is_started:
+            self.logger.debug(f"Shutting down the framework...")
+            if force and self.__framework_task__:
+                self.__framework_task__.cancel()
+            self.__framework__.stop()
+    
+    async def favicon(self) -> FileResponse: #!ЭТО МЕТОД API
+        return FileResponse(ASSETS / "favicon.ico")
     
     async def ping(self) -> dict: #!ЭТО МЕТОД API
         return {"response": "pong"}
@@ -268,24 +300,8 @@ class TwilightAPI:
             self.__shutdown_initiated__ = True
 
         self.logger.info("Shutdown initiated!")
-        await asyncio.create_task(self.__shutdown_api__(force=force))
+        await asyncio.create_task(self.__shutdown__(force=force))
         return {"response": "shutdown initiated!",
                 "params": {
                     "force": force
                 }}
-    
-    async def __shutdown_api__(self, force:bool=False):
-
-        if self.__uvicorn_server__.started:
-            self.logger.debug(f"Shutting down the API...")
-            self.__uvicorn_server__.should_exit = True
-            await asyncio.sleep(0.1)
-        
-        if self.__framework__:
-            self.logger.debug(f"Shutting down the framework...")
-            if force:
-                self.__framework_task__.cancel()
-            self.__framework__.stop()
-    
-    async def favicon(self) -> FileResponse: #!ЭТО МЕТОД API
-        return FileResponse(ASSETS / "favicon.ico")

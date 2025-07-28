@@ -6,11 +6,10 @@ from ..logger.darky_visual import FG, STYLE
 from ..http.async_http import Http
 from .api.api import VkBaseMethods
 from .api.methods import VkMethods
-from .validators.response_validator import ResponseValidator
+from .validators.http_validator import HttpValidator
+from .validators.event_validator import EventValidator
 
 CONFIG = Configuration().get_config()
-httpClient = Http()
-
 
 class BotsLongPoll:
 
@@ -41,7 +40,9 @@ class BotsLongPoll:
         self.__wait__ = CONFIG.vk_api.wait
         self.authorized = False
         self.wait_for_response = False
-        self.validator = ResponseValidator()
+        self.httpValidator = HttpValidator()
+        self.eventValidator = EventValidator()
+        self.httpClient = Http()
         self.base_methods = VkBaseMethods(self.__api_url__, self.__access_token__)
         self.vk_methods = VkMethods(self.base_methods)
         self.logger = DarkyLogger("botlongpoll", configuration=CONFIG.LOGGER)
@@ -73,6 +74,10 @@ class BotsLongPoll:
             self.logger.debug(f"Authorized")
         except KeyError as ex:
             self.logger.error(f"Unable to find key: {ex} {response}")
+        finally:
+            await self.httpClient.close()
+            await self.base_methods.close()
+
     
     async def check_event(self) -> dict:
         
@@ -82,7 +87,7 @@ class BotsLongPoll:
         try:
             self.wait_for_response=True
             self.logger.debug(f"Listening the BotsLongPoll server for events...")
-            response = await httpClient.get(url=f"{self.__server__}",
+            response = await self.httpClient.get(url=f"{self.__server__}",
                                             params={
                                                 "act": "a_check",
                                                 "key": self.__key__,
@@ -91,7 +96,8 @@ class BotsLongPoll:
                                             },
                                             raw=True)
             self.logger.debug(f"Validating response for event...")
-            response = await self.validator.validate(response)
+            response = await self.httpValidator.validate(response)
+            response = await self.eventValidator.validate(response)
             self.logger.debug(f"Got an event: {response}")
             self.wait_for_response=False
 
@@ -123,7 +129,7 @@ class BotsLongPoll:
         except asyncio.CancelledError:
             self.logger.warning(f"Listening was forcibly canceled (it is not recommend to do this)")
         finally:
-            await httpClient.close()
+            await self.httpClient.close()
             await self.base_methods.close()
             self.__is_polling__ = False
             self.logger.debug(f"Polling was stopped")

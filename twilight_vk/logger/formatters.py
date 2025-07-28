@@ -18,6 +18,7 @@ class DarkyConsoleFormatter(logging.Formatter):
         "CRITICAL": f"{FG.BOLD}{BG.RED}{FG.WHITE}CRITICAL{STYLE.RESET}"
     }
 
+    twiname_color = f"{FG.CUSTOM_COLOR("#44F")}%s{STYLE.RESET}"
     asctime_color = f"{FG.CUSTOM_COLOR("#DDD")}%s{STYLE.RESET}"
     name_color = f"{FG.CUSTOM_COLOR("#888")}%s{STYLE.RESET}"
 
@@ -79,7 +80,8 @@ class DarkyConsoleFormatter(logging.Formatter):
         record_copy = copy(record)
         if self.colored:
             if self.color_core_name and "twilight" in record_copy.name:
-                record_copy.name = f"{STYLE.GRADIENT(f"{record_copy.name}", ["#44F", "#A6F"])}{STYLE.RESET}"
+                #record_copy.name = f"{STYLE.GRADIENT(f"{record_copy.name}", ["#44F", "#A6F"])}{STYLE.RESET}"
+                record_copy.name = self.twiname_color % record_copy.name
             else:
                 record_copy.name = self.name_color % record_copy.name
             if record_copy.levelname == "CRITICAL":
