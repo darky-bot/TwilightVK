@@ -74,9 +74,6 @@ class BotsLongPoll:
             self.logger.debug(f"Authorized")
         except KeyError as ex:
             self.logger.error(f"Unable to find key: {ex} {response}")
-        finally:
-            await self.httpClient.close()
-            await self.base_methods.close()
 
     
     async def check_event(self) -> dict:
@@ -95,7 +92,7 @@ class BotsLongPoll:
                                                 "wait": self.__wait__
                                             },
                                             raw=True)
-            self.logger.debug(f"Validating response for event...")
+            self.logger.debug(f"Validating...")
             response = await self.httpValidator.validate(response)
             response = await self.eventValidator.validate(response)
             self.logger.debug(f"Got an event: {response}")

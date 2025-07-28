@@ -70,7 +70,11 @@ JSON_LOGGER:
       handlers: ["console"]
       level: DEBUG
       propagate: False
-    resp-validator:
+    http-validator:
+      handlers: ["console"]
+      level: DEBUG
+      propagate: False
+    event-validator:
       handlers: ["console"]
       level: DEBUG
       propagate: False

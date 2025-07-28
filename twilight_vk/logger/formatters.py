@@ -8,6 +8,39 @@ from uvicorn.logging import AccessFormatter
 from .darky_visual import STYLE, FG, BG
 
 
+class MaskData:
+
+    def mask_sensitive(message, keys=None):
+        if keys is None:
+            keys = ["access_token", "key"]
+        key_pattern = "|".join(keys)
+        
+        patterns = [
+            rf'([\'"])({key_pattern})\1\s*:\s*({"|".join([r'([\'"]).*?\1', r'([0-9])*'])})',
+            rf'({key_pattern})=.*?(&|$)'
+        ]
+        combined_pattern = '|'.join(patterns)
+
+        def replacer(match):
+            if match.group(1):
+                key_quote = match.group(1)
+                key = match.group(2)
+                if match.group(4):
+                    value_quote = match.group(4)
+                    return f'{key_quote}{key}{key_quote}: {value_quote}***{value_quote}'
+                else:
+                    return f"{key_quote}{key}{key_quote}: ***"
+            else:
+                key = match.group(6)
+                suffix = match.group(7)
+                return f'{key}=***{suffix}'
+        
+        try:
+            return re.sub(combined_pattern, replacer, message, flags=re.IGNORECASE)
+        except re.error as e:
+            return f"Regex error: {e} --- Message: {message}"
+
+
 class DarkyConsoleFormatter(logging.Formatter):
 
     levelname_colors = {
@@ -78,6 +111,7 @@ class DarkyConsoleFormatter(logging.Formatter):
         Formatting the log message
         '''
         record_copy = copy(record)
+        record_copy.msg = MaskData.mask_sensitive(record_copy.msg)
         if self.colored:
             if self.color_core_name and "twilight" in record_copy.name:
                 #record_copy.name = f"{STYLE.GRADIENT(f"{record_copy.name}", ["#44F", "#A6F"])}{STYLE.RESET}"
@@ -124,6 +158,7 @@ class DarkyFileFormatter(logging.Formatter):
         Removes the colors for file logging
         '''
         record_copy = copy(record)
+        record_copy.msg = MaskData.mask_sensitive(record_copy.msg)
         record_copy.levelname =      re.sub(r'\033\[.*?m', '', record_copy.levelname)
         record_copy.msg =            re.sub(r'\033\[.*?m', '', record_copy.msg)
         record_copy.name =           re.sub(r'\033\[.*?m', '', record_copy.name)

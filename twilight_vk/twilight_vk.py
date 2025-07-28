@@ -28,7 +28,8 @@ class TwilightVK:
     def __init__(self, 
                  ACCESS_TOKEN:str=None, 
                  GROUP_ID:int=None, 
-                 API_VERSION:str=CONFIG.vk_api.version) -> None:
+                 API_VERSION:str=CONFIG.vk_api.version,
+                 __stopApiCommand__=None) -> None:
 
         '''
         Initializes TwilightVK as module
@@ -44,6 +45,8 @@ class TwilightVK:
         '''
 
         self.is_started = False
+
+        self.__stopApiCommand__ = __stopApiCommand__
 
         self.__access_token__ = ACCESS_TOKEN
         self.__group_id__ = GROUP_ID
@@ -98,6 +101,9 @@ class TwilightVK:
             self.__bot__.stop()
         except Exception as exc:
             self.logger.critical(f"Framework was crashed with critical unhandled error", exc_info=True)
+            if self.__stopApiCommand__:
+                self.logger.info(f"Stopping API...")
+                await self.__stopApiCommand__()
         finally:
             for callback in self.__shutdown_callbacks__:
                 await self.__callback_func__(callback)
@@ -140,7 +146,9 @@ class TwilightAPI:
     def __init__(self,
                  HOST:str=CONFIG.api.host,
                  PORT:str=CONFIG.api.port,
-                 FRAMEWORK:TwilightVK=None):
+                 FRAMEWORK:TwilightVK|None=None,
+                 ACCESS_TOKEN:str|None=None,
+                 GROUP_ID:int|None=None):
         
         '''
         Initializes TwilightVK as separate API
@@ -151,9 +159,17 @@ class TwilightAPI:
         :param PORT: sets the port for API
         :type PORT: str
 
-        :param FRAMEWORK: Initialized and configured bot's framework
+        :param FRAMEWORK: Initialized and configured bot's framework(ACCESS_TOKEN and GROUP_ID will be ignored)
         :type FRAMEWORK: object | None
+
+        :param ACCESS_TOKEN: your group's access token, you can find it here(https://dev.vk.com/ru/api/access-token/community-token/in-community-settings)
+        :type ACCESS_TOKEN: str | None
+
+        :param GROUP_ID: your group's id, you can find it in your group's settings
+        :type GROUP_ID: int | None
         '''
+
+        self.logger = DarkyLogger(logger_name=f"twilight-api", configuration=CONFIG.LOGGER)
 
         self.__shutdown_initiated__ = False
 
@@ -168,6 +184,13 @@ class TwilightAPI:
             version=CONFIG.api.version,
             lifespan=self.lifespan
             )
+        if FRAMEWORK:
+            self.logger.debug(f"Initiated framework was given")
+        else:
+            self.logger.debug(f"Framework was not initiated. Initializing with ACCESS_TOKEN and GROUP_ID...")
+            FRAMEWORK = TwilightVK(ACCESS_TOKEN,
+                                   GROUP_ID,
+                                   __stopApiCommand__=self.__stopApi__)
         self.__framework__ = FRAMEWORK
 
         self.__loop__ = self.__framework__.__get_async_loop__()
@@ -199,7 +222,6 @@ class TwilightAPI:
         self.__api__.include_router(self.__router__)
 
         self.logo = LogoComponent()
-        self.logger = DarkyLogger(logger_name=f"twilight-api", configuration=CONFIG.LOGGER)
 
     def start(self):
         try:
@@ -253,10 +275,6 @@ class TwilightAPI:
             self.logger.info(f"Starting the Twilight API...")
             for callback in self.__startup_callbacks__:
                 await self.__callback_func__(callback)
-            if self.__framework__ == None:
-                self.logger.warning(f"Framework was not configured!")
-                self.logger.info(f"Initializing default TwilightVK...")
-                self.__framework__ = TwilightVK("123", 123)
             self.logger.info(f"{FG.BLUE}Twilight API is started{STYLE.RESET} (on {CONFIG.api.host}:{CONFIG.api.port})")
             yield
             '''Here is the shutdown code'''
@@ -293,7 +311,7 @@ class TwilightAPI:
     
     async def ping(self) -> dict: #!ЭТО МЕТОД API
         return {"response": "pong"}
-    
+        
     async def stop(self, force:bool=False) -> dict: #!ЭТО МЕТОД API
         
         if not self.__shutdown_initiated__:
