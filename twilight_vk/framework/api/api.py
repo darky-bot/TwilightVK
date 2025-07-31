@@ -17,10 +17,10 @@ class VkBaseMethods:
     def __init__(self,
                  url:str,
                  token:str,
-                 validate_response:bool=True):
+                 group:int):
         self.__url__ = url
         self.__token__ = token
-        self.validate = validate_response
+        self.__group__ = group
         self.httpValidator = HttpValidator()
         self.eventValidator = EventValidator()
         self.httpClient = Http({"Authorization": f"Bearer {token}"})
@@ -80,6 +80,7 @@ class BaseMethodsGroup:
     def __init__(self,
                  baseMethods:VkBaseMethods):
         self.__access_token__ = baseMethods.__token__
+        self.__group_id__ = baseMethods.__group__
         self.__api_version__ = CONFIG.vk_api.version
         self.base_api = baseMethods
         self.__class_name__ = self.__class__.__name__

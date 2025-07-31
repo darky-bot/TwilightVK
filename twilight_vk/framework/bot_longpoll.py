@@ -43,7 +43,7 @@ class BotsLongPoll:
         self.httpValidator = HttpValidator()
         self.eventValidator = EventValidator()
         self.httpClient = Http()
-        self.base_methods = VkBaseMethods(self.__api_url__, self.__access_token__)
+        self.base_methods = VkBaseMethods(self.__api_url__, self.__access_token__, self.__group_id__)
         self.vk_methods = VkMethods(self.base_methods)
         self.logger = DarkyLogger("botlongpoll", configuration=CONFIG.LOGGER)
     

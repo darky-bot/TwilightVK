@@ -36,6 +36,7 @@ class EventValidator:
             if field in content:
                 return True
         else:
+            self.logger.error(f"Response doesn't contain any of the requirement fields")
             return False
     
     async def __haveErrors__(self,
