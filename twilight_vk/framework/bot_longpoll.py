@@ -61,7 +61,7 @@ class BotsLongPoll:
 
             self.logger.debug(f"Getting Bots LongPoll Server...")
             self.wait_for_response = True
-            response = await self.vk_methods.groups.getLongPollServer(group_id=self.__group_id__)
+            response = await self.vk_methods.groups.getLongPollServer()
             response = response["response"]
             self.wait_for_response = False
             self.logger.debug(f"Server aquired: {response}")
