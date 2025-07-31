@@ -13,7 +13,6 @@ class Groups(BaseMethodsGroup):
         '''
 
         values = {
-            "access_token": self.__access_token__,
             "group_id": abs(group_id),
             "v": self.__api_version__
         }

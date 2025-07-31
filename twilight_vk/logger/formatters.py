@@ -12,7 +12,7 @@ class MaskData:
 
     def mask_sensitive(message, keys=None):
         if keys is None:
-            keys = ["access_token", "key"]
+            keys = ["access_token", "key", "Authorization"]
         key_pattern = "|".join(keys)
         
         patterns = [

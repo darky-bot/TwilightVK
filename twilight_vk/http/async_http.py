@@ -3,16 +3,29 @@ from aiohttp import ClientSession, ClientResponse, ClientTimeout
 class Http:
 
     def __init__(self,
+                 headers:dict|None=None,
                  timeout:int=30):
         '''
         This class allows to use HTTP requests asynchronously
         '''
         self.session = None
+        self.headers = headers
         self.timeout = timeout
+    
+    async def __getSession__(self):
+        if self.session is None:
+            self.session = ClientSession(headers=self.headers, timeout=ClientTimeout(self.timeout))
+        
+    @staticmethod
+    async def __isRaw__(response:ClientResponse, raw:bool=False):
+        if raw:
+            return response
+        return response.json()
 
     async def get(self,
                   url:str,
-                  params:dict=None,
+                  params:dict|None=None,
+                  headers:dict|None=None,
                   raw:bool=True) -> ClientResponse | dict:
         '''
         HTTP GET method
@@ -23,14 +36,17 @@ class Http:
         :param params: Dictionary containing the optional data to be sent in the GET request
         :type params: dict | None
 
+        :param headers: Optional dictionary of HTTP headers to include in the request
+        :type headers: dict, optional
+
         :param raw: Defines the raw/json response
         :type raw: bool
         '''
-        if self.session is None: self.session = ClientSession(timeout=ClientTimeout(self.timeout))
-        response = await self.session.get(url=url, params=params)
-        if raw:
-            return response
-        return await response.json()
+        await self.__getSession__()
+        response = await self.session.get(url=url,
+                                          params=params,
+                                          headers=headers)
+        return await self.__isRaw__(response, raw=raw)
     
     async def post(self,
                    url:str,
@@ -53,15 +69,12 @@ class Http:
         :param raw: Defines the raw/json response
         :type raw: bool
         '''
-        if self.session is None: self.session = ClientSession(timeout=ClientTimeout(self.timeout))
+        await self.__getSession__()
         response = await self.session.post(url=url,
                                            params=params,
                                            json=data,
                                            headers=headers)
-        response.raise_for_status()
-        if raw:
-            return response
-        return await response.json()
+        return await self.__isRaw__(response, raw=raw)
     
     async def close(self):
         if self.session is not None and not self.session.closed:

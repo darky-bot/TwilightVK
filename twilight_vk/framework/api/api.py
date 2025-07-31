@@ -5,6 +5,10 @@ from ...logger.darky_logger import DarkyLogger
 from ...utils.config_loader import Configuration
 from ..validators.http_validator import HttpValidator
 from ..validators.event_validator import EventValidator
+from ..handlers.exceptions import (
+    HttpValidationError,
+    EventValidationError
+)
 
 CONFIG = Configuration().get_config()
 
@@ -19,18 +23,20 @@ class VkBaseMethods:
         self.validate = validate_response
         self.httpValidator = HttpValidator()
         self.eventValidator = EventValidator()
-        self.httpClient = Http()
+        self.httpClient = Http({"Authorization": f"Bearer {token}"})
         self.logger = DarkyLogger("vk-methods", configuration=CONFIG.LOGGER)
 
     async def base_get_method(
             self,
             api_method:str,
-            values:dict={}
+            values:dict={},
+            headers:dict={}
             ) -> ClientResponse:
         try:
-            self.logger.debug(f"Calling HTTP-GET {api_method} method with {values}...")
+            self.logger.debug(f"Calling HTTP-GET {api_method} method with {values} {headers}...")
             response = await self.httpClient.get(url=f"{self.__url__}/method/{api_method}",
                                                 params=values,
+                                                headers=headers,
                                                 raw=True)
             response = await self.httpValidator.validate(response)
             response = await self.eventValidator.validate(response)
@@ -46,7 +52,7 @@ class VkBaseMethods:
             api_method:str,
             values:dict={},
             data:dict={},
-            headers:dict=None
+            headers:dict={}
             ) -> ClientResponse:
         try:
             self.logger.debug(f"Calling HTTP-POST {api_method} method with {values} {headers}:{data}...")

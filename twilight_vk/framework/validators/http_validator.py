@@ -37,7 +37,11 @@ class HttpValidator:
         isSuccess = await self.__isSuccess__(response)
 
         if isValid and isSuccess:
-            self.logger.debug(f"Response is valid")
+            self.logger.debug(f"HTTP Response is valid")
             return response
+        
+        self.logger.warning(f"HTTP Response is not valid")
+        self.logger.warning(f'{"isValid":<10}|{"":>1}{"isSuccess":<10}|{"":>1}{"response":<10}')
+        self.logger.warning(f'{isValid:<10}|{"":>1}{isSuccess:<10}|{"":>1}{response}')
         
         raise HttpValidationError(isValid, isSuccess, response)

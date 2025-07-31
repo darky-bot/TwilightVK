@@ -43,6 +43,8 @@ class TwilightVK:
         :param API_VERSION: version of VK API, by default its grabbed from the frameworks's default configuration
         :type API_VERSION: str | None
         '''
+        
+        self.logger = DarkyLogger(logger_name=f"twilight-vk", configuration=CONFIG.LOGGER)
 
         self.is_started = False
 
@@ -64,13 +66,9 @@ class TwilightVK:
                                     self.__api_version__)
         self.methods = None
         self.logo = LogoComponent()
-        self.logger = DarkyLogger(logger_name=f"twilight-vk", configuration=CONFIG.LOGGER)
 
-        if ACCESS_TOKEN == None:
-            raise InitError("ACCESS_TOKEN is None!")
-        
-        if GROUP_ID == None:
-            raise InitError("GROUP_ID is None!")
+        if not ACCESS_TOKEN or not GROUP_ID:
+            raise InitError(self.__access_token__, self.__group_id__)
     
     def on_startup(self, func):
         self.__startup_callbacks__.append(func)

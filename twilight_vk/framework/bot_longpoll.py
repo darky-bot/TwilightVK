@@ -94,7 +94,7 @@ class BotsLongPoll:
                                             raw=True)
             self.logger.debug(f"Validating...")
             response = await self.httpValidator.validate(response)
-            response = await self.eventValidator.validate(response)
+            response = await self.eventValidator.validate(response, from_polling=True)
             self.logger.debug(f"Got an event: {response}")
             self.wait_for_response=False
 
