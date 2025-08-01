@@ -12,7 +12,10 @@ from .components.logo import LogoComponent
 from .logger.darky_logger import DarkyLogger
 from .logger.darky_visual import Visual, STYLE, FG
 from .utils.config_loader import Configuration
-from .framework.handlers.exceptions import InitError
+from .framework.handlers.exceptions import (
+    TwilightInitError,
+    AuthError
+)
 from .framework.bot_longpoll import BotsLongPoll
 from .http.async_http import Http
 
@@ -68,7 +71,7 @@ class TwilightVK:
         self.logo = LogoComponent()
 
         if not ACCESS_TOKEN or not GROUP_ID:
-            raise InitError(self.__access_token__, self.__group_id__)
+            raise TwilightInitError(self.__access_token__, self.__group_id__)
     
     def on_startup(self, func):
         self.__startup_callbacks__.append(func)
@@ -82,6 +85,11 @@ class TwilightVK:
             await func()
         else:
             func()
+    
+    async def __stopAPI__(self):
+        if self.__stopApiCommand__:
+            self.logger.info(f"Stopping API...")
+            await self.__stopApiCommand__()
 
     async def run_polling(self):
         try:
@@ -96,13 +104,11 @@ class TwilightVK:
                 ...
         except asyncio.CancelledError:
             self.logger.warning(f"Polling was forcibly canceled (it is not recommend to do this)")
-            self.__bot__.stop()
         except Exception as exc:
             self.logger.critical(f"Framework was crashed with critical unhandled error", exc_info=True)
-            if self.__stopApiCommand__:
-                self.logger.info(f"Stopping API...")
-                await self.__stopApiCommand__()
         finally:
+            await self.__stopAPI__()
+            self.__bot__.stop()
             for callback in self.__shutdown_callbacks__:
                 await self.__callback_func__(callback)
             self.logger.info(f"{FG.RED}TwilightVK has been stopped!{STYLE.RESET}")

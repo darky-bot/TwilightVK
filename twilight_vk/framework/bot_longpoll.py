@@ -8,6 +8,7 @@ from .api.api import VkBaseMethods
 from .api.methods import VkMethods
 from .validators.http_validator import HttpValidator
 from .validators.event_validator import EventValidator
+from .handlers.exceptions import AuthError, VkApiError
 
 CONFIG = Configuration().get_config()
 
@@ -72,8 +73,12 @@ class BotsLongPoll:
             self.authorized = True
 
             self.logger.debug(f"Authorized")
-        except KeyError as ex:
-            self.logger.error(f"Unable to find key: {ex} {response}")
+        except AuthError as ex:
+            self.logger.error(f"Authrization error: {ex}")
+            self.stop()
+        except VkApiError as ex:
+            self.logger.critical("Request to VK API was handled with error", exc_info=True)
+            self.stop()
 
     
     async def check_event(self) -> dict:
@@ -104,8 +109,9 @@ class BotsLongPoll:
             self.__ts__ = response["ts"]
             
             return response
-        except KeyError as ex:
-            self.logger.error(f"Unable to find key: {ex} {response}")
+        except VkApiError as ex:
+            self.logger.critical("Request to VK API was handled with error", exc_info=True)
+            self.stop()
     
     async def listen(self):
 
@@ -132,6 +138,6 @@ class BotsLongPoll:
             self.logger.debug(f"Polling was stopped")
         
     def stop(self):
-        if self.__is_polling__ or self.wait_for_response:
+        if self.__stop__ != True and (self.__is_polling__ or self.wait_for_response):
             self.logger.info(f"Polling will be stopped as soon as the current request will be done. Please wait")
             self.__stop__ = True

@@ -4,7 +4,8 @@ from ...utils.config_loader import Configuration
 from ...logger.darky_logger import DarkyLogger
 from ..handlers.exceptions import (
     EventValidationError,
-    VkApiError
+    VkApiError,
+    AuthError
 )
 
 CONFIG = Configuration().get_config()
@@ -46,9 +47,14 @@ class EventValidator:
             if field in content:
                 # TODO: VK API Exceptions and validators
                 if field == "error":
-                    raise VkApiError(content["error"]["error_code"],
-                                     content["error"]["error_msg"],
-                                     content["error"]["request_params"])
+                    error_code = content[field]["error_code"]
+                    error_msg = content[field]["error_msg"]
+                    request_params = content[field]["request_params"]
+                    
+                    if content[field]["error_code"] in [5, 1116]:
+                        raise AuthError(error_code, error_msg, request_params)
+                    
+                    raise VkApiError(error_code, error_msg, request_params)
                 return True
         else:
             return False

@@ -5,10 +5,6 @@ from ...logger.darky_logger import DarkyLogger
 from ...utils.config_loader import Configuration
 from ..validators.http_validator import HttpValidator
 from ..validators.event_validator import EventValidator
-from ..handlers.exceptions import (
-    HttpValidationError,
-    EventValidationError
-)
 
 CONFIG = Configuration().get_config()
 
@@ -32,20 +28,16 @@ class VkBaseMethods:
             values:dict={},
             headers:dict={}
             ) -> ClientResponse:
-        try:
-            self.logger.debug(f"Calling HTTP-GET {api_method} method with {values} {headers}...")
-            response = await self.httpClient.get(url=f"{self.__url__}/method/{api_method}",
-                                                params=values,
-                                                headers=headers,
-                                                raw=True)
-            response = await self.httpValidator.validate(response)
-            response = await self.eventValidator.validate(response)
+        self.logger.debug(f"Calling HTTP-GET {api_method} method with {values} {headers}...")
+        response = await self.httpClient.get(url=f"{self.__url__}/method/{api_method}",
+                                            params=values,
+                                            headers=headers,
+                                            raw=True)
+        response = await self.httpValidator.validate(response)
+        response = await self.eventValidator.validate(response)
 
-            self.logger.debug(f"Response for {api_method}: {response}")
-            return response
-        except Exception as ex:
-            self.logger.error(f"Error with calling {api_method}", exc_info=True)
-            await self.close()
+        self.logger.debug(f"Response for {api_method}: {response}")
+        return response
         
     async def base_post_method(
             self,
@@ -54,21 +46,17 @@ class VkBaseMethods:
             data:dict={},
             headers:dict={}
             ) -> ClientResponse:
-        try:
-            self.logger.debug(f"Calling HTTP-POST {api_method} method with {values} {headers}:{data}...")
-            response = await self.httpClient.post(url=f"{self.__url__}/method/{api_method}",
-                                                params=values,
-                                                data=data,
-                                                headers=headers,
-                                                raw=True)
-            response = await self.httpValidator.validate(response)
-            response = await self.eventValidator.validate(response)
+        self.logger.debug(f"Calling HTTP-POST {api_method} method with {values} {headers}:{data}...")
+        response = await self.httpClient.post(url=f"{self.__url__}/method/{api_method}",
+                                            params=values,
+                                            data=data,
+                                            headers=headers,
+                                            raw=True)
+        response = await self.httpValidator.validate(response)
+        response = await self.eventValidator.validate(response)
 
-            self.logger.debug(f"Response for {api_method}: {response}")
-            return response
-        except Exception as ex:
-            self.logger.error(f"Error with calling {api_method}", exc_info=True)
-            await self.close()
+        self.logger.debug(f"Response for {api_method}: {response}")
+        return response
     
     async def close(self):
         self.logger.debug("VkBaseMethods was closed")
