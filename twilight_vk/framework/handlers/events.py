@@ -86,17 +86,9 @@ class Labeler:
     def __init__(self, handlers: dict):
         self.handlers = handlers
     
-    def message_new(self, **rules):
+    def message_new(self, *rules):
         def decorator(func):
-            self.handlers[BotEventType.MESSAGE_NEW].__add__(func, **rules)
-            return func
-        return decorator
-
-    def __getattr__(self, event_type: str, **rules):
-        def decorator(func: Callable):
-            if event_type not in self.handlers:
-                return None
-            self.handlers[event_type].__add__(func, rules)
+            self.handlers[BotEventType.MESSAGE_NEW].__add__(func, rules)
             return func
         return decorator
 

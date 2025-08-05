@@ -49,6 +49,8 @@ class TwilightVK:
         
         self.logger = DarkyLogger(logger_name=f"twilight-vk", configuration=CONFIG.LOGGER)
 
+        self.logger.debug(f"Initializing...")
+
         self.is_started = False
 
         self.__stopApiCommand__ = __stopApiCommand__
@@ -190,6 +192,8 @@ class TwilightAPI:
         '''
 
         self.logger = DarkyLogger(logger_name=f"twilight-api", configuration=CONFIG.LOGGER)
+
+        self.logger.debug(f"Initializing...")
 
         self.__shutdown_initiated__ = False
 

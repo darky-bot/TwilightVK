@@ -21,19 +21,23 @@ class BASE_EVENT_HANDLER:
         self.vk_methods = vk_methods
         self.__funcs__: List[Callable] = []
     
-    def __add__(self, func, **rules):
+    def __add__(self, func, rules):
         self.__funcs__.append(
             {
-                "rules": [{"rule": Rules.list[rule], "value": value} for rule, value in rules.items()],
+                "rules": rules,
                 "func": func
             }
         )
-        self.logger.debug(f"{func.__name__} was added to {self.__class__.__name__} with rules: [{rules}]")
+        self.logger.debug(f"{func.__name__} was added to {self.__class__.__name__} "\
+                          f"with rules: {[f"{rule.__class__.__name__}" for rule in rules]}")
     
     async def __checkRule__(self, rule, event):
-        self.logger.debug(f"Checking rule {rule["rule"]}...")
-        await rule["rule"].__updateEvent__(event)
-        return await rule["rule"].check(rule["value"])
+        self.logger.debug(f"Updating event attr in {rule}")
+        await rule.__updateEvent__(event)
+        self.logger.debug(f"Checking rule {rule.__class__.__name__}({rule.kwargs})...")
+        result = await rule.check()
+        self.logger.debug(f"Rule {rule.__class__.__name__} returned the {result}")
+        return result
 
     async def __callFunc__(self, handler, event):
         func = handler["func"]
@@ -44,14 +48,20 @@ class BASE_EVENT_HANDLER:
         )
         self.logger.debug(f"Rules check results: {rule_results}")
         self.logger.debug(f"{func.__name__}'s rules was checked")
-        if False not in rule_results:
-            self.logger.debug(f"Calling {func.__name__} from {self.__class__.__name__}...")
-            if asyncio.iscoroutinefunction(func):
-                response = await func(event)
-            else:
-                response = func(event)
-            await self.__handleOutput__(response, event)
-            self.logger.debug(f"{func.__name__} from {self.__class__.__name__} was called")
+        for rule in rule_results:
+            if isinstance(rule, Exception):
+                self.logger.warning(f"Got an exception in rules check results. [{rule.__class__.__name__}({rule})]")
+                return
+            if rule is False:
+                self.logger.debug(f"Rule has False value")
+                return
+        self.logger.debug(f"Calling {func.__name__} from {self.__class__.__name__}...")
+        if asyncio.iscoroutinefunction(func):
+            response = await func(event)
+        else:
+            response = func(event)
+        await self.__handleOutput__(response, event)
+        self.logger.debug(f"{func.__name__} from {self.__class__.__name__} was called")
     
     async def __handleOutput__(self, callback, event):
         if callback:
