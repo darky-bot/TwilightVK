@@ -9,6 +9,7 @@ from .api.methods import VkMethods
 from .validators.http_validator import HttpValidator
 from .validators.event_validator import EventValidator
 from .handlers.exceptions import AuthError, VkApiError
+from .handlers.events import EventHandler
 
 CONFIG = Configuration().get_config()
 
@@ -46,10 +47,15 @@ class BotsLongPoll:
         self.httpClient = Http()
         self.base_methods = VkBaseMethods(self.__api_url__, self.__access_token__, self.__group_id__)
         self.vk_methods = VkMethods(self.base_methods)
+        self.event_handler = EventHandler(self.vk_methods)
+        self.on_event = self.event_handler.on_event
         self.logger = DarkyLogger("botlongpoll", configuration=CONFIG.LOGGER)
     
-    async def get_vk_methods(self):
+    def get_vk_methods(self):
         return self.vk_methods
+    
+    def get_event_handler(self):
+        return self.event_handler
     
     async def auth(self):
 

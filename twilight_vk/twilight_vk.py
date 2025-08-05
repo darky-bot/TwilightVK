@@ -67,7 +67,9 @@ class TwilightVK:
         self.__bot__ = BotsLongPoll(self.__access_token__,
                                     self.__group_id__,
                                     self.__api_version__)
-        self.methods = None
+        self.methods = self.__bot__.get_vk_methods()
+        self.__eventHandler__ = self.__bot__.get_event_handler()
+        self.on_event = self.__eventHandler__.on_event
         self.logo = LogoComponent()
 
         if not ACCESS_TOKEN or not GROUP_ID:
@@ -99,9 +101,9 @@ class TwilightVK:
                 await self.__callback_func__(callback)
             await self.__bot__.auth()
             self.logger.info(f"{FG.BLUE}TwilightVK is started{STYLE.RESET}")
-            self.methods = await self.__bot__.get_vk_methods()
-            async for event in self.__bot__.listen():
-                ...
+            async for event_response in self.__bot__.listen():
+                for event in event_response["updates"]:
+                    await self.__eventHandler__.handle(event)
         except asyncio.CancelledError:
             self.logger.warning(f"Polling was forcibly canceled (it is not recommend to do this)")
         except Exception as exc:
@@ -195,9 +197,11 @@ class TwilightAPI:
             FRAMEWORK = TwilightVK(ACCESS_TOKEN,
                                    GROUP_ID,
                                    __stopApiCommand__=self.__stopApi__)
-        self.__framework__ = FRAMEWORK
+        self.framework = FRAMEWORK
+        self.on_event = self.framework.on_event
+        self.methods = self.framework.methods
 
-        self.__loop__ = self.__framework__.__get_async_loop__()
+        self.__loop__ = self.framework.__get_async_loop__()
 
         self.__api_task__ = None
         self.__framework_task__ = None
@@ -244,7 +248,7 @@ class TwilightAPI:
     async def _run_tasks(self):
         try:
             self.__api_task__ = asyncio.create_task(self.__uvicorn_server__.serve())
-            self.__framework_task__ = asyncio.create_task(self.__framework__.run_polling())
+            self.__framework_task__ = asyncio.create_task(self.framework.run_polling())
 
             await asyncio.gather(
                 self.__api_task__,
@@ -304,11 +308,11 @@ class TwilightAPI:
             await asyncio.sleep(0.1)
     
     async def __stopFramework__(self, force:bool=False):
-        if self.__framework__.is_started:
+        if self.framework.is_started:
             self.logger.debug(f"Shutting down the framework...")
             if force and self.__framework_task__:
                 self.__framework_task__.cancel()
-            self.__framework__.stop()
+            self.framework.stop()
     
     async def favicon(self) -> FileResponse: #!ЭТО МЕТОД API
         return FileResponse(ASSETS / "favicon.ico")

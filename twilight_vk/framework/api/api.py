@@ -26,15 +26,17 @@ class VkBaseMethods:
             self,
             api_method:str,
             values:dict={},
-            headers:dict={}
+            headers:dict={},
+            validate:bool=True
             ) -> ClientResponse:
         self.logger.debug(f"Calling HTTP-GET {api_method} method with {values} {headers}...")
         response = await self.httpClient.get(url=f"{self.__url__}/method/{api_method}",
                                             params=values,
                                             headers=headers,
                                             raw=True)
-        response = await self.httpValidator.validate(response)
-        response = await self.eventValidator.validate(response)
+        if validate:
+            response = await self.httpValidator.validate(response)
+            response = await self.eventValidator.validate(response)
 
         self.logger.debug(f"Response for {api_method}: {response}")
         return response
@@ -44,7 +46,8 @@ class VkBaseMethods:
             api_method:str,
             values:dict={},
             data:dict={},
-            headers:dict={}
+            headers:dict={},
+            validate:bool=True
             ) -> ClientResponse:
         self.logger.debug(f"Calling HTTP-POST {api_method} method with {values} {headers}:{data}...")
         response = await self.httpClient.post(url=f"{self.__url__}/method/{api_method}",
@@ -52,8 +55,9 @@ class VkBaseMethods:
                                             data=data,
                                             headers=headers,
                                             raw=True)
-        response = await self.httpValidator.validate(response)
-        response = await self.eventValidator.validate(response)
+        if validate:
+            response = await self.httpValidator.validate(response)
+            response = await self.eventValidator.validate(response)
 
         self.logger.debug(f"Response for {api_method}: {response}")
         return response
