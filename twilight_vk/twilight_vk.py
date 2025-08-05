@@ -118,23 +118,37 @@ class TwilightVK:
             self.__bot__.__is_polling__ = False
             self.is_started = False
 
-    async def _run(self):
-        self.__framework_task__ = asyncio.create_task(self.run_polling())
-        await asyncio.gather(
+    async def _run_tasks(self):
+        try:
+            self.__framework_task__ = asyncio.create_task(self.run_polling())
+
+            await asyncio.gather(
                 self.__framework_task__,
                 return_exceptions=True)
+            
+        except Exception as e:
+            self.logger.error(f"Unhandled error", exc_info=True)
+            await self.__stopFramework__(force=True)
         
     def start(self):
         try:
             self.logger.info(self.logo.colored)
-            self.__loop__.run_until_complete(self._run())
+            self.__loop__.run_until_complete(self._run_tasks())
         except KeyboardInterrupt:
-            self.logger.info(f"KeyboardInterrupt recieved!")
+            self.logger.warning(f"KeyboardInterrupt recieved, shutting down...")
+            self.__loop__.run_until_complete(self.__stopFramework__(force=True))
         except Exception as ex:
-            self.logger.critical(f"Framework was crashed", exc_info=True)
+            self.logger.critical(f"Unhandled error", exc_info=True)
         finally:
             self.__loop__.run_until_complete(self.__loop__.shutdown_asyncgens())
             self.__loop__.close()
+    
+    async def __stopFramework__(self, force:bool=False):
+        if self.is_started:
+            self.logger.debug(f"Shutting down the framework...")
+            if force and self.__framework_task__:
+                self.__framework_task__.cancel()
+            self.stop()
     
     def __get_async_loop__(self):
         return self.__loop__

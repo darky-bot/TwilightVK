@@ -1,4 +1,4 @@
-from aiohttp import ClientSession, ClientResponse, ClientTimeout
+from aiohttp import ClientSession, ClientResponse, ClientTimeout, TCPConnector
 
 class Http:
 
@@ -14,13 +14,15 @@ class Http:
     
     async def __getSession__(self):
         if self.session is None:
-            self.session = ClientSession(headers=self.headers, timeout=ClientTimeout(self.timeout))
+            self.session = ClientSession(headers=self.headers,
+                                         timeout=ClientTimeout(self.timeout),
+                                         connector=TCPConnector(force_close=True))
         
     @staticmethod
     async def __isRaw__(response:ClientResponse, raw:bool=False):
         if raw:
             return response
-        return response.json()
+        return await response.json()
 
     async def get(self,
                   url:str,
