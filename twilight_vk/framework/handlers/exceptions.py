@@ -1,4 +1,8 @@
 from aiohttp import ClientResponse
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..handlers.response import ResponseHandler
 
 class FrameworkError(Exception):
     
@@ -113,6 +117,29 @@ class EventValidationError(ValidationError):
         f"{": Content is not JSON " if self.jsonIsValid is None else ""}"\
         f"{": Response doesn't contain the required fields " if self.fieldsAreValid is None else ""}"
 
+
+
+class HandlerError(FrameworkError):
+
+    def __init__(self,
+                 message:str):
+        self.message = message
+    
+    def __str__(self):
+        return f"Handler error"\
+        f"{f" : {self.message}" if self.message is not None else ""}"
+    
+
+class ResponseHandlerError(HandlerError):
+
+    def __init__(self,
+                 callback):
+        self.callback = callback
+    
+    def __str__(self):
+        return f"Response handler error"\
+        f"{f" : function callback is not instance of ResponseHandler, make sure you are returning correct values in your functions"\
+           if not isinstance(self.callback, ResponseHandler) else ""}"
 
 
 class VkApiError(FrameworkError):

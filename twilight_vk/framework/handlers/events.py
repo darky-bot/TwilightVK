@@ -4,6 +4,7 @@ from typing import Callable
 
 from .event_handlers import (
     BASE_EVENT_HANDLER,
+    DEFAULT_HANDLER,
     MESSAGE_NEW,
     MESSAGE_REPLY
 )
@@ -98,7 +99,7 @@ class EventHandler:
                  vk_methods:'VkMethods'):
         self.vk_methods = vk_methods
         self._handlers = {
-            "default": BASE_EVENT_HANDLER(self.vk_methods),
+            "default": DEFAULT_HANDLER(self.vk_methods),
             BotEventType.MESSAGE_NEW: MESSAGE_NEW(self.vk_methods),
             BotEventType.MESSAGE_REPLY: MESSAGE_REPLY(self.vk_methods)
         }
@@ -106,5 +107,5 @@ class EventHandler:
 
     async def handle(self, current_event:dict):
         event_type = current_event.get("type", "default")
-        handler = self._handlers.get(event_type, self._handlers["default"])
+        handler:BASE_EVENT_HANDLER = self._handlers.get(event_type, self._handlers["default"])
         await handler.__executeAsync__(current_event)

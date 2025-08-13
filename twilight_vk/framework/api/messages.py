@@ -34,12 +34,14 @@ class Messages(BaseMethodsGroup):
         '''
 
         values = {
-            "user_id": user_id if user_id is not None else "",
+            "user_id": user_id,
             "random_id": randint(0, 1000000000),
-            "peer_id": peer_id if peer_id is not None else "",
-            "peer_ids": peer_ids if peer_ids is not None else "",
-            "message": message if message is not None else "",
+            "peer_id": peer_id,
+            "peer_ids": peer_ids,
+            "message": message,
             "group_id": abs(group_id) if group_id is not None else self.__group_id__,
+            "reply_to": reply_to,
+            "forward": forward,
             "v": self.__api_version__
         }
         response = await self.base_api.base_get_method(api_method=f"{self.method}.send",

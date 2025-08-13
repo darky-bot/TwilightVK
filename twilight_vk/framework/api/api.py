@@ -29,9 +29,13 @@ class VkBaseMethods:
             headers:dict={},
             validate:bool=True
             ) -> ClientResponse:
+        valid_values = {}
+        for key, value in values.items():
+            if value not in ['', None]:
+                valid_values[key] = value
         self.logger.debug(f"Calling HTTP-GET {api_method} method with {values} {headers}...")
         response = await self.httpClient.get(url=f"{self.__url__}/method/{api_method}",
-                                            params=values,
+                                            params=valid_values,
                                             headers=headers,
                                             raw=True)
         if validate:
@@ -49,9 +53,13 @@ class VkBaseMethods:
             headers:dict={},
             validate:bool=True
             ) -> ClientResponse:
+        valid_values = {}
+        for key, value in values.items():
+            if value not in ['', None]:
+                valid_values[key] = value
         self.logger.debug(f"Calling HTTP-POST {api_method} method with {values} {headers}:{data}...")
         response = await self.httpClient.post(url=f"{self.__url__}/method/{api_method}",
-                                            params=values,
+                                            params=valid_values,
                                             data=data,
                                             headers=headers,
                                             raw=True)
