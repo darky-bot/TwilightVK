@@ -91,6 +91,18 @@ class BASE_EVENT_HANDLER:
         
         return rule_results
     
+    async def __extractArgs__(self, rule_results:list):
+        '''
+        Extracts all args from rule_results after regex rules
+        '''
+        args = {}
+        if isinstance(rule_results, list):
+            for result in rule_results:
+                if isinstance(result, dict):
+                    for key, value in result.items():
+                        args.setdefault(key, value)
+        return args
+   
     async def __handleOutput__(self,
                                func,
                                callback:str|ResponseHandler,
@@ -122,20 +134,22 @@ class BASE_EVENT_HANDLER:
                 return response
         raise ResponseHandlerError(callback)
         
-    async def __callFunc__(self, handler, event):
+    async def __callFunc__(self, handler:dict, event:dict):
         '''
         Executes separate function from self.__funcs__ list
         '''
         func = handler["func"]
 
         rule_results = await self.__checkRules__(func, handler, event)
+
+        extracted_args = await self.__extractArgs__(rule_results)
         
         if rule_results is not False:
             self.logger.debug(f"Calling {func.__name__} from {self.__class__.__name__}...")
             if asyncio.iscoroutinefunction(func):
-                response = await func(event)
+                response = await func(event, **extracted_args)
             else:
-                response = func(event)
+                response = func(event, **extracted_args)
 
             result = await self.__handleOutput__(func, response, event)
             if result:

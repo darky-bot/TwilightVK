@@ -82,7 +82,7 @@ class BotEventType:
     DONUT_MONEY_WITHDRAW = "donut_money_withdraw"
     DONUT_MONEY_WITHDRAW_ERROR = "donut_money_withdraw_error"
 
-class Labeler:
+class OnEventLabeler:
 
     def __init__(self, handlers: dict):
         self.handlers = handlers
@@ -103,7 +103,7 @@ class EventHandler:
             BotEventType.MESSAGE_NEW: MESSAGE_NEW(self.vk_methods),
             BotEventType.MESSAGE_REPLY: MESSAGE_REPLY(self.vk_methods)
         }
-        self.on_event = Labeler(self._handlers)
+        self.on_event = OnEventLabeler(self._handlers)
 
     async def handle(self, current_event:dict):
         event_type = current_event.get("type", "default")
