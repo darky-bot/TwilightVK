@@ -132,6 +132,8 @@ class BASE_EVENT_HANDLER:
                     forward = callback.forward
                 )
                 return response
+            if isinstance(callback, None):
+                return True
         raise ResponseHandlerError(callback)
         
     async def __callFunc__(self, handler:dict, event:dict):

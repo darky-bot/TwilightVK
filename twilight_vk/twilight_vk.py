@@ -1,8 +1,10 @@
 from typing import Callable, List
 import asyncio
+import aiohttp
 from threading import Thread
 from pathlib import Path
 
+import aiohttp.client_exceptions
 import uvicorn
 from fastapi import FastAPI, APIRouter
 from fastapi.responses import FileResponse
@@ -103,16 +105,40 @@ class TwilightVK:
                 await self.__callback_func__(callback)
             await self.__bot__.auth()
             self.logger.info(f"{FG.BLUE}TwilightVK is started{STYLE.RESET}")
+
+            #async for event_response in self.__bot__.listen():
+            #    for event in event_response["updates"]:
+            #        await self.__eventHandler__.handle(event)
+
+            async def process_events(event_response):
+                """Вспомогательная функция для обработки набора событий."""
+                try:
+                    events = []
+                    for event in event_response["updates"]:
+                        events.append(
+                            asyncio.create_task(
+                                self.__eventHandler__.handle(event)
+                            )
+                        )
+                    results = await asyncio.gather(*events, return_exceptions=True)
+                    for result, event in zip(results, event_response["updates"]):
+                        if isinstance(result, Exception):
+                            if not self.__bot__.__stop__:
+                                self.logger.error(f"Event handling error {event}: {result}", exc_info=True)
+                except aiohttp.client_exceptions.ClientConnectionError as ex:
+                    self.logger.error(f"{ex.__class__.__name__}: {ex}")
+
             async for event_response in self.__bot__.listen():
-                for event in event_response["updates"]:
-                    await self.__eventHandler__.handle(event)
+                asyncio.create_task(process_events(event_response))
+
         except asyncio.CancelledError:
             self.logger.warning(f"Polling was forcibly canceled (it is not recommend to do this)")
         except Exception as exc:
             self.logger.critical(f"Framework was crashed with critical unhandled error", exc_info=True)
         finally:
             await self.__stopAPI__()
-            self.__bot__.stop()
+            if not self.__bot__.__stop__:
+                self.__bot__.stop()
             for callback in self.__shutdown_callbacks__:
                 await self.__callback_func__(callback)
             self.logger.info(f"{FG.RED}TwilightVK has been stopped!{STYLE.RESET}")
@@ -134,7 +160,7 @@ class TwilightVK:
         
     def start(self):
         try:
-            self.logger.info(self.logo.colored)
+            self.logger.note(self.logo.colored)
             self.__loop__.run_until_complete(self._run_tasks())
         except KeyboardInterrupt:
             self.logger.warning(f"KeyboardInterrupt recieved, shutting down...")
@@ -251,7 +277,7 @@ class TwilightAPI:
 
     def start(self):
         try:
-            self.logger.info(self.logo.colored)
+            self.logger.note(self.logo.colored)
             self.logger.info(f"Starting...")
             self.__loop__.run_until_complete(self._run_tasks())
         except KeyboardInterrupt:
@@ -331,6 +357,9 @@ class TwilightAPI:
             if force and self.__framework_task__:
                 self.__framework_task__.cancel()
             self.framework.stop()
+        
+    def should_stop(self):
+        self.framework.stop()
     
     async def favicon(self) -> FileResponse: #!ЭТО МЕТОД API
         return FileResponse(ASSETS / "favicon.ico")

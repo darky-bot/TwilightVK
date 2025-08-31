@@ -135,11 +135,12 @@ class ResponseHandlerError(HandlerError):
     def __init__(self,
                  callback):
         self.callback = callback
+        self.instance:"ResponseHandler"
     
     def __str__(self):
         return f"Response handler error"\
         f"{f" : function callback is not instance of ResponseHandler, make sure you are returning correct values in your functions"\
-           if not isinstance(self.callback, ResponseHandler) else ""}"
+           if not isinstance(self.callback, self.instance) else ""}"
 
 
 class VkApiError(FrameworkError):
