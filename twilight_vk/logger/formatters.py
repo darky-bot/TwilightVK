@@ -48,7 +48,8 @@ class DarkyConsoleFormatter(logging.Formatter):
         "INFO": f"{FG.GREEN}INFO{STYLE.RESET}",
         "WARNING": f"{FG.YELLOW}WARNING{STYLE.RESET}",
         "ERROR": f"{FG.BOLD}{FG.RED}ERROR{STYLE.RESET}",
-        "CRITICAL": f"{FG.BOLD}{BG.RED}{FG.WHITE}CRITICAL{STYLE.RESET}"
+        "CRITICAL": f"{FG.BOLD}{BG.RED}{FG.WHITE}CRITICAL{STYLE.RESET}",
+        "NOTE": f"{STYLE.CUSTOM_COLOR("##AAA", "FG")}NOTE{STYLE.RESET}"
     }
 
     twiname_color = f"{FG.CUSTOM_COLOR("#44F")}%s{STYLE.RESET}"
