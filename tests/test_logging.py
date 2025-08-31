@@ -27,7 +27,7 @@ CONFIG = {
             "class": "logging.handlers.RotatingFileHandler",
             "level": "DEBUG",
             "formatter": "file",
-            "filename": "test.log",
+            "filename": "tests/test_logging.log",
             "encoding": "utf8",
             "backupCount": 1
         },
@@ -41,17 +41,17 @@ CONFIG = {
         "test": {
             "handlers": ["console", "file"],
             "level": "DEBUG",
-            "propagate": False
+            "propagate": True
         }
     }
 }
 
-def test_logging():
+def test_logging(caplog):
 
     print()
     logger = DarkyLogger("test", CONFIG)
 
-    for level in [logger.debug, logger.info, logger.warning, logger.error]:
+    for level in [logger.note, logger.debug, logger.info, logger.warning, logger.error]:
         level(f"Mlem")
         level("{'key': 123}, {'access_token': 'abc'}, {\"access_token\": \"abc\"}")
         level(f"https://mlem.api/mlem?access_token=123")
@@ -61,3 +61,19 @@ def test_logging():
         raise Exception
     except Exception as ex:
         logger.critical(f"We got an error! Mlem", exc_info=True)
+    
+    for record in caplog.records:
+        if record.message not in ["ANSI support initiated!", "DarkyLogger initiated"]:
+            if record.levelname in ["DEBUG", "INFO", "ERROR"]:
+                assert record.message in ["Mlem",
+                                          "{'key': 123}, {'access_token': 'abc'}, {\"access_token\": \"abc\"}",
+                                          "https://mlem.api/mlem?access_token=123",
+                                          "https://mlem.api/mlem?access_token=123&abs=True"]
+            elif record.levelname == "WARNING":
+                assert record.message in ["'DarkyLogger' has no attribute 'mlem'. \"INFO\" is used instead.",
+                                          "Mlem",
+                                          "{'key': 123}, {'access_token': 'abc'}, {\"access_token\": \"abc\"}",
+                                          "https://mlem.api/mlem?access_token=123",
+                                          "https://mlem.api/mlem?access_token=123&abs=True"]
+            elif record.levelname == "CRITICAL":
+                assert record.message == "We got an error! Mlem"
