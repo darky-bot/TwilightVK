@@ -5,9 +5,9 @@ from .api import BaseMethodsGroup
 class Messages(BaseMethodsGroup):
     
     async def send(self,
-                   user_id:int=None,
-                   peer_id:int=None,
-                   peer_ids:str|list[int]=None,
+                   user_id: int | str = None,
+                   peer_id: int | str = None,
+                   peer_ids: str | list[str] | int | list[int] = None,
                    domain:str=None,
                    chat_id:int=None,
                    user_ids:str|list[int]=None,
@@ -27,10 +27,23 @@ class Messages(BaseMethodsGroup):
                    dont_parse_links:bool=None,
                    disable_mentions:bool=None,
                    intent:str=None,
-                   subsribe_id:int=None):
+                   subsribe_id:int=None,
+                   **kwargs):
         
         '''
         Отправляет сообщение
+
+        :param user_id: Обязательный параметр. Идентификатор пользователя, которому отправляется сообщение. Вместо него можно использовать peer_id.
+        :type user_id: int | str
+
+        :param peer_id: Необязательный параметр. Идентификатор получателя сообщения:\n
+            - Для пользователя — ИДЕНТИФИКАТОР_ПОЛЬЗОВАТЕЛЯ.\n
+            - Для групповой беседы — 2000000000 + ИДЕНТИФИКАТОР_БЕСЕДЫ.\n
+            - Для сообщества — -ИДЕНТИФИКАТОР_СООБЩЕСТВА.\n
+        :type peer_id: int | str
+
+        :param peer_ids: Идентификаторы получателей сообщения, перечисленные через запятую. Максимальное количество идентификаторов — 100.
+        :type peer_ids: str | list
         '''
 
         values = {
