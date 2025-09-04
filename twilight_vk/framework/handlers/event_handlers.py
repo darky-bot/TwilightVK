@@ -126,11 +126,7 @@ class BASE_EVENT_HANDLER:
                     }
                 )
             if isinstance(callback, ResponseHandler):
-                response = await self.vk_methods.messages.send(
-                    peer_ids = callback.peer_ids,
-                    message = callback.message,
-                    forward = callback.forward
-                )
+                response = await self.vk_methods.messages.send(**callback.getData())
                 return response
             if isinstance(callback, None):
                 return True
