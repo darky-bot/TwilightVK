@@ -38,7 +38,7 @@ class BaseRule:
         '''
         Updates the event attribute on empty one, after handling is completed
         '''
-        self.event = None
+        delattr(self, "event")
     
     async def check(self) -> bool:
         '''

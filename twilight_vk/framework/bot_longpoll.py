@@ -1,4 +1,6 @@
 import asyncio
+import aiohttp
+import aiohttp.client_exceptions
 
 from ..utils.config_loader import Configuration
 from ..logger.darky_logger import DarkyLogger
@@ -79,6 +81,10 @@ class BotsLongPoll:
             self.authorized = True
 
             self.logger.debug(f"Authorized")
+
+        except aiohttp.client_exceptions.ClientConnectorDNSError as ex:
+            self.logger.critical(f"{ex}", exc_info=True)
+            self.stop()
         except AuthError as ex:
             self.logger.error(f"Authrization error: {ex}")
             self.stop()

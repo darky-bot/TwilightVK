@@ -148,7 +148,7 @@ class VkApiError(FrameworkError):
     def __init__(self,
                  error_code:int,
                  error_msg:str,
-                 request_params:list,
+                 request_params:list
                  ):
         '''
         Исключение при ошибках в запросах к VK API

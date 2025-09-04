@@ -37,7 +37,9 @@ class BASE_EVENT_HANDLER:
 
         self.__funcs__: List[Callable] = []
     
-    def __add__(self, func, rules):
+    def __add__(self, 
+                func, 
+                rules: list):
         '''
         Allows to add callable functions into this handler
         '''
@@ -50,16 +52,19 @@ class BASE_EVENT_HANDLER:
         self.logger.debug(f"{func.__name__} was added to {self.__class__.__name__} "\
                           f"with rules: {[f"{rule.__class__.__name__}" for rule in rules]}")
     
-    async def __checkRule__(self, rule, event):
+    async def __checkRule__(self,
+                            rule: BaseRule, 
+                            event: dict):
         '''
         Checking rule result for current function and event
         '''
-        self.logger.debug(f"Updating event attribute in {rule}")
-        await rule.__updateEvent__(event)
+        self.logger.debug(f"Checking rule {rule.__class__.__name__}({rule.__dict__})...")
 
-        self.logger.debug(f"Checking rule {rule.__class__.__name__}({rule.kwargs})...")
+        await rule.__updateEvent__(event)
         result = await rule.check()
+
         self.logger.debug(f"Rule {rule.__class__.__name__} returned the {result}")
+        
         await rule.__earseEvent__()
 
         return result
