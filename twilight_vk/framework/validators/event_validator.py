@@ -2,8 +2,10 @@ from aiohttp import ClientResponse
 
 from ...utils.config_loader import Configuration
 from ...logger.darky_logger import DarkyLogger
-from ..handlers.exceptions import (
-    EventValidationError,
+from ..exceptions.validator import (
+    EventValidationError
+)
+from ..exceptions.vkapi import (
     VkApiError,
     AuthError,
     LongPollError

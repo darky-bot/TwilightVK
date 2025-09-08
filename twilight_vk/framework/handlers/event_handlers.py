@@ -8,7 +8,7 @@ from ...logger.darky_logger import DarkyLogger
 from ..validators.event_validator import EventValidator
 from ..validators.http_validator import HttpValidator
 from .response import ResponseHandler
-from .exceptions import (
+from ..exceptions.handler import (
     ResponseHandlerError
 )
 from ..rules import *

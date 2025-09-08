@@ -3,7 +3,7 @@ from http import HTTPStatus
 
 from ...utils.config_loader import Configuration
 from ...logger.darky_logger import DarkyLogger
-from ..handlers.exceptions import HttpValidationError
+from ..exceptions.validator import HttpValidationError
 
 CONFIG = Configuration().get_config()
 

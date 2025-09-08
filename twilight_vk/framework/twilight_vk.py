@@ -6,7 +6,7 @@ from ..logger.darky_logger import DarkyLogger
 from ..logger.darky_visual import STYLE, FG
 from ..components.logo import LogoComponent
 from ..utils.config_loader import Configuration
-from .handlers.exceptions import (
+from .exceptions.framework import (
     InitializationError
 )
 

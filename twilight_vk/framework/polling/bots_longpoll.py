@@ -1,7 +1,7 @@
 from aiohttp.client_exceptions import ClientConnectorDNSError
 
 from .base_longpoll import BaseLongPoll
-from ..handlers.exceptions import (
+from ..exceptions.vkapi import (
     AuthError,
     VkApiError,
     LongPollError
