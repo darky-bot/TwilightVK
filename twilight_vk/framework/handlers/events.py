@@ -1,7 +1,5 @@
 from typing import TYPE_CHECKING
 
-from typing import Callable
-
 from .event_handlers import (
     BASE_EVENT_HANDLER,
     DEFAULT_HANDLER,
@@ -10,7 +8,7 @@ from .event_handlers import (
 )
 
 if TYPE_CHECKING:
-    from ..api.methods import VkMethods
+    from ..methods import VkMethods
 
 class BotEventType:
 

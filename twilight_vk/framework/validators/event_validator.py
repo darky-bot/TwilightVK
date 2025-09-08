@@ -5,7 +5,8 @@ from ...logger.darky_logger import DarkyLogger
 from ..handlers.exceptions import (
     EventValidationError,
     VkApiError,
-    AuthError
+    AuthError,
+    LongPollError
 )
 
 CONFIG = Configuration().get_config()
@@ -55,6 +56,9 @@ class EventValidator:
                         raise AuthError(error_code, error_msg, request_params)
                     
                     raise VkApiError(error_code, error_msg, request_params)
+                if field == "failed":
+                    failed_code = content[field]
+                    raise LongPollError(failed_code)
                 return True
         else:
             return False

@@ -1,4 +1,6 @@
-from .twilight_vk import TwilightVK, TwilightAPI
+from .framework.twilight_vk import TwilightVK
+
+from .api.twilight_api import TwilightAPI
 
 from .utils.config_loader import Configuration
 

@@ -81,6 +81,7 @@ class Http:
     async def close(self):
         if self.session is not None and not self.session.closed:
             await self.session.close()
+            self.session = None
 
 async def main():
     httpClient = Http()

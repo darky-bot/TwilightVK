@@ -19,7 +19,8 @@ class VkBaseMethods:
         self.__group__ = group
         self.httpValidator = HttpValidator()
         self.eventValidator = EventValidator()
-        self.httpClient = Http({"Authorization": f"Bearer {token}"})
+        self.httpClientHeaders = {"Authorization": f"Bearer {token}"}
+        self.httpClient = Http(self.httpClientHeaders)
         self.logger = DarkyLogger("vk-methods", configuration=CONFIG.LOGGER)
 
     async def base_get_method(
@@ -31,9 +32,10 @@ class VkBaseMethods:
             ) -> ClientResponse:
         valid_values = {}
         for key, value in values.items():
-            if value not in ['', None]:
+            if value not in ['', None, 'None']:
                 valid_values[key] = value
-        self.logger.debug(f"Calling HTTP-GET {api_method} method with {values} {headers}...")
+        headers = headers | self.httpClientHeaders
+        self.logger.debug(f"Calling HTTP-GET {api_method} method with {valid_values} {headers if headers != {} else ""}...")
         response = await self.httpClient.get(url=f"{self.__url__}/method/{api_method}",
                                             params=valid_values,
                                             headers=headers,
@@ -57,7 +59,8 @@ class VkBaseMethods:
         for key, value in values.items():
             if value not in ['', None]:
                 valid_values[key] = value
-        self.logger.debug(f"Calling HTTP-POST {api_method} method with {values} {headers}:{data}...")
+        headers = headers | self.httpClientHeaders
+        self.logger.debug(f"Calling HTTP-POST {api_method} method with {valid_values} {headers if headers != {} else ""}:{data}...")
         response = await self.httpClient.post(url=f"{self.__url__}/method/{api_method}",
                                             params=valid_values,
                                             data=data,
@@ -78,10 +81,13 @@ class VkBaseMethods:
 class BaseMethodsGroup:
 
     def __init__(self,
-                 baseMethods:VkBaseMethods):
+                 baseMethods:VkBaseMethods,
+                 logger:DarkyLogger):
         self.__access_token__ = baseMethods.__token__
         self.__group_id__ = baseMethods.__group__
         self.__api_version__ = CONFIG.vk_api.version
         self.base_api = baseMethods
         self.__class_name__ = self.__class__.__name__
+        self.logger = logger
+        self.logger.initdebug(f"Class {self.__class_name__} was initiated")
         self.method = f"{self.__class_name__[0].lower()}{self.__class_name__[1:]}"

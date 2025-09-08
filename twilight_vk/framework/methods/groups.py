@@ -1,4 +1,4 @@
-from .api import BaseMethodsGroup
+from .base import BaseMethodsGroup
 
 class Groups(BaseMethodsGroup):
     

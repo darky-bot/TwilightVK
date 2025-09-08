@@ -44,17 +44,19 @@ class MaskData:
 class DarkyConsoleFormatter(logging.Formatter):
 
     levelname_colors = {
+        "SUBDEBUG": f"{FG.CUSTOM_COLOR("#048")}SUBDEBUG{STYLE.RESET}",
         "DEBUG": f"{FG.BLUE}DEBUG{STYLE.RESET}",
         "INFO": f"{FG.GREEN}INFO{STYLE.RESET}",
         "WARNING": f"{FG.YELLOW}WARNING{STYLE.RESET}",
         "ERROR": f"{FG.BOLD}{FG.RED}ERROR{STYLE.RESET}",
         "CRITICAL": f"{FG.BOLD}{BG.RED}{FG.WHITE}CRITICAL{STYLE.RESET}",
-        "NOTE": f"{STYLE.CUSTOM_COLOR("##AAA", "FG")}NOTE{STYLE.RESET}"
+        "NOTE": f"{FG.CUSTOM_COLOR("##AAA")}NOTE{STYLE.RESET}"
     }
 
-    twiname_color = f"{FG.CUSTOM_COLOR("#44F")}%s{STYLE.RESET}"
+    default_levelname_color = f"{FG.CUSTOM_COLOR("#555")}%s{STYLE.RESET}"
+    twiname_color = f"{FG.CUSTOM_COLOR("#22B")}%s{STYLE.RESET}"
     asctime_color = f"{FG.CUSTOM_COLOR("#DDD")}%s{STYLE.RESET}"
-    name_color = f"{FG.CUSTOM_COLOR("#888")}%s{STYLE.RESET}"
+    name_color = f"{FG.CUSTOM_COLOR("#555")}%s{STYLE.RESET}"
 
     def __init__(
             self,
@@ -87,7 +89,7 @@ class DarkyConsoleFormatter(logging.Formatter):
         Applies colors to the levelname
         '''
         if self.colored:
-            return self.levelname_colors[levelname]
+            return self.levelname_colors.get(levelname, self.default_levelname_color % levelname)
         return levelname
     
     def formatTime(self, record, datefmt = None):

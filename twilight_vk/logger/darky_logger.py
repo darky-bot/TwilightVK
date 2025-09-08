@@ -14,7 +14,7 @@ class DarkyLogger:
         },
         "handlers": {
             "console": {
-                "level": "DEBUG",
+                "level": "INITDEBUG",
                 "class": "logging.StreamHandler",
                 "formatter": "console"
             }
@@ -22,7 +22,7 @@ class DarkyLogger:
         "loggers": {
             "test": {
                 "handlers": ["console"],
-                "level": "DEBUG",
+                "level": "INITDEBUG",
                 "propagate": False
             }
         }
@@ -40,34 +40,6 @@ class DarkyLogger:
         :param configuration: позволяет гибко настроить конфигурацию логгера
         (см. https://docs.python.org/3/library/logging.config.html#configuration-dictionary-schema)
         :type configuration: dict
-
-        Не смотря на то что некоторые методы не отображаются, класс поддерживает следующие методы логгирования:
-        - debug()
-        - info()
-        - warning()
-        - error()
-        - critical()
-
-        Работающих по аналогии со стандартным logging
-
-        Пример::
-
-            >>> test_logger = DarkyLogger("test")
-            >>> test_logger.info("Test message")
-            INFO - Test message
-
-        ``bool exc_info`` при вызове какого либо из уровня логгирования включит отображение последнего traceback:
-
-            >>> try:
-            ...     raise Exception
-            >>> except Exception as ex:
-            ...     test_logger.error("We got an error", exc_info=True)
-            ERROR - We got an error
-            Traceback (most recent call last):
-              File "test.py", line 2, in main
-                raise Exception
-            Exception
-
         '''
         
         if logger_name is None:
@@ -79,16 +51,26 @@ class DarkyLogger:
         if ansi:
             Visual.ansi()
 
+        logging.INITDEBUG = 1
+        logging.addLevelName(logging.INITDEBUG, "INIT")
+
+        logging.SUBDEBUG = 5
+        logging.addLevelName(logging.SUBDEBUG, "SUBDEBUG")
+
         logging.NOTE = 100
         logging.addLevelName(logging.NOTE, "NOTE")
 
         logging.config.dictConfig(configuration)
         self.__logger__ = logging.getLogger(logger_name)
-        if not silent:
-            self.__logger__.debug(f"DarkyLogger initiated")
+        
+        self.initdebug: Callable[[str]] = \
+            lambda msg, *args, **kwargs: self.__logger__.log(level=logging.INITDEBUG, msg=msg, *args, **kwargs)
         
         self.note: Callable[[str]] = \
             lambda msg, *args, **kwargs: self.__logger__.log(level=logging.NOTE, msg=msg, *args, **kwargs)
+        
+        self.subdebug: Callable[[str]] = \
+            lambda msg, *args, **kwargs: self.__logger__.log(level=logging.SUBDEBUG, msg=msg, *args, **kwargs)
         
         self.debug: Callable[[str]] = \
             lambda msg, *args, **kwargs: self.__logger__.debug(msg, *args, **kwargs)
@@ -104,10 +86,13 @@ class DarkyLogger:
         
         self.critical: Callable[[str, bool]] = \
             lambda msg, *args, exc_info=False, **kwargs: self.__logger__.critical(msg, *args, exc_info=exc_info, **kwargs)
+        
+        if not silent:
+            self.initdebug(f"DarkyLogger initiated")
     
     def __getattr__(self, name):
 
-        if name not in ["debug", "info", "warning", "error", "critical", "note"]:
+        if name not in ["initdebug", "subdebug", "debug", "info", "warning", "error", "critical", "note"]:
             self.__logger__.warning(f"'DarkyLogger' has no attribute '{name}'. \"INFO\" is used instead.")
             name = "info"
         attr = getattr(self.__logger__, name)

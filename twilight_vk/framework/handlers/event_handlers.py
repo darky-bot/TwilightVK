@@ -11,10 +11,10 @@ from .response import ResponseHandler
 from .exceptions import (
     ResponseHandlerError
 )
-from .rules import *
+from ..rules import *
 
 if TYPE_CHECKING:
-    from ..api.methods import VkMethods
+    from ..methods import VkMethods
 
 CONFIG = Configuration().get_config()
 
@@ -31,7 +31,7 @@ class BASE_EVENT_HANDLER:
         :type vk_methods: VkMethods
         '''
         self.logger = DarkyLogger(f"event-handler", CONFIG.LOGGER, silent=True)
-        self.logger.debug(f"{self.__class__.__name__} event handler is initiated")
+        self.logger.initdebug(f"{self.__class__.__name__} event handler is initiated")
 
         self.vk_methods = vk_methods
 
@@ -49,7 +49,7 @@ class BASE_EVENT_HANDLER:
                 "func": func
             }
         )
-        self.logger.debug(f"{func.__name__} was added to {self.__class__.__name__} "\
+        self.logger.initdebug(f"{func.__name__}() was added to {self.__class__.__name__} "\
                           f"with rules: {[f"{rule.__class__.__name__}" for rule in rules]}")
     
     async def __checkRule__(self,

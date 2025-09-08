@@ -19,7 +19,7 @@ class FrameworkError(Exception):
     def __str__(self):
         return f"Framework got an error! {f"[{self.message}]" if self.message is not None else ""}"
     
-class TwilightInitError(FrameworkError):
+class InitializationError(FrameworkError):
     
     def __init__(self,
                  access_token:str,
@@ -141,6 +141,29 @@ class ResponseHandlerError(HandlerError):
         return f"Response handler error"\
         f"{f" : function callback is not instance of ResponseHandler, make sure you are returning correct values in your functions"\
            if not isinstance(self.callback, self.instance) else ""}"
+
+
+
+class LongPollError(FrameworkError):
+
+    def __init__(self,
+                 failed_code:int):
+        '''
+        Исключение при ошибках в ответ на запросы к LongPoll серверу
+
+        :param failed_code: Код ошибки который возвращает сервер
+        :type failed_code: int
+        '''
+        self.failed_code = failed_code
+        self.failed_msgs = {
+            1: "The event history is outdated or has been partially lost. Use actual \"ts\"",
+            2: "The key expired. New \"key\" is needed.",
+            3: "The information is lost. New \"key\" and \"ts\" is needed."
+        }
+
+    def __str__(self):
+        return f"[{self.failed_code}] {self.failed_msgs.get(self.failed_code)}"
+
 
 
 class VkApiError(FrameworkError):
