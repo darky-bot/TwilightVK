@@ -1,5 +1,8 @@
 aiohttp==3.12.15
 fastapi==0.115.12
 pytest==8.3.5
+pytest_httpbin==2.1.0
+pytest-asyncio==1.0.0
+pytest-mypy==1.0.1
 PyYAML==6.0.2
 uvicorn==0.34.0

@@ -1,7 +1,3 @@
-import pytest
-import asyncio
-import logging
-
 from twilight_vk.logger.darky_logger import DarkyLogger
 from twilight_vk.logger.formatters import (
     DarkyConsoleFormatter,
