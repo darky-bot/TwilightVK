@@ -5,19 +5,12 @@ framework:
 api:
   host: 127.0.0.1
   port: 8080
-  title: Twilight VK API
-  description: Welcome to the Twilight VK API!
-  routes:
-    ping:
-      name: Ping the API
-      description: Pings the server and bot's API
-    stop:
-      name: Stop the bot
-      description: Stops the bot and its API
+  title: Twilight API Swagger
+  description: Welcome to the Twilight API Swagger!
   version: 0.0.1
 
 vk_api:
-  server: "https://api.vk.com/"
+  url: "https://api.vk.ru"
   version: "5.199"
   wait: 25
 
@@ -39,46 +32,54 @@ JSON_LOGGER:
       colored: True
   handlers:
     file:
-      level: DEBUG
+      level: INIT
       class: "logging.handlers.RotatingFileHandler"
       formatter: "file"
       filename: "twilight.log"
       backupCount: 1
       encoding: "utf-8"
     console:
-      level: DEBUG
+      level: INFO
       class: "logging.StreamHandler"
       formatter: "console"
     uvicorn_access_console:
-      level: DEBUG
+      level: INIT
       class: "logging.StreamHandler"
       formatter: "uvicorn_access_console"
   loggers:
     twilight-api:
-      handlers: ["console"]
-      level: DEBUG
-      propagate: False
+      handlers: ["console", "file"]
+      level: INIT
+      propagate: True
     twilight-vk:
-      handlers: ["console"]
-      level: DEBUG
-      propagate: False
-    botlongpoll:
-      handlers: ["console"]
-      level: DEBUG
-      propagate: False
+      handlers: ["console", "file"]
+      level: INIT
+      propagate: True
+    botslongpoll:
+      handlers: ["console", "file"]
+      level: INIT
+      propagate: True
     vk-methods:
-      handlers: ["console"]
-      level: DEBUG
-      propagate: False
-    resp-validator:
-      handlers: ["console"]
-      level: DEBUG
-      propagate: False
+      handlers: ["console", "file"]
+      level: INIT
+      propagate: True
+    http-validator:
+      handlers: ["console", "file"]
+      level: INIT
+      propagate: True
+    event-validator:
+      handlers: ["console", "file"]
+      level: INIT
+      propagate: True
+    event-handler:
+      handlers: ["console", "file"]
+      level: INIT
+      propagate: True
     uvicorn.access:
       handlers: ["uvicorn_access_console"]
-      level: DEBUG
-      propagate: False
+      level: INIT
+      propagate: True
     uvicorn.error:
-      handlers: ["console"]
+      handlers: ["console", "file"]
       level: WARNING
-      propagate: False
+      propagate: True

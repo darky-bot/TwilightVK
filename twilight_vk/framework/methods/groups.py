@@ -1,20 +1,19 @@
-from .api import BaseMethodsGroup
+from .base import BaseMethodsGroup
 
 class Groups(BaseMethodsGroup):
     
     async def getLongPollServer(self,
-                                group_id:int) -> dict:
+                                group_id:int=None) -> dict:
         
         '''
         Returns data for connection to Bots Longpoll API
 
         :param group_id: - Group's ID
-        :type group_id: int
+        :type group_id: int | None
         '''
 
         values = {
-            "access_token": self.__access_token__,
-            "group_id": abs(group_id),
+            "group_id": abs(group_id) if group_id is not None else self.__group_id__,
             "v": self.__api_version__
         }
         response = await self.base_api.base_get_method(api_method=f"{self.method}.getLongPollServer",

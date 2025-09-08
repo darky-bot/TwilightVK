@@ -30,20 +30,20 @@ class LogoComponent:
 
         self._logo = [
             "",
-            "  :::::::::::   :::       :::   :::::::::::   :::         :::::::::::    ::::::::    :::    :::   :::::::::::",
-            "     :+:       :+:       :+:       :+:       :+:             :+:       :+:    :+:   :+:    :+:       :+:     ",
-            "    +:+       +:+       +:+       +:+       +:+             +:+       +:+          +:+    +:+       +:+      ",
-            "   +#+       +#+  +:+  +#+       +#+       +#+             +#+       :#:          +#++:++#++       +#+       ",
-            "  +#+       +#+ +#+#+ +#+       +#+       +#+             +#+       +#+   +#+#   +#+    +#+       +#+        ",
-            " #+#        #+#+# #+#+#        #+#       #+#             #+#       #+#    #+#   #+#    #+#       #+#         ",
-            "###         ###   ###     ###########   ##########  ###########    ########    ###    ###       ###          "
+            "  :::::::::::   :::       :::   :::::::::::   :::          :::::::::::    ::::::::    :::    :::   :::::::::::",
+            "     :+:       :+:       :+:       :+:       :+:              :+:       :+:    :+:   :+:    :+:       :+:     ",
+            "    +:+       +:+       +:+       +:+       +:+              +:+       +:+          +:+    +:+       +:+      ",
+            "   +#+       +#+  +:+  +#+       +#+       +#+              +#+       :#:          +#++:++#++       +#+       ",
+            "  +#+       +#+ +#+#+ +#+       +#+       +#+              +#+       +#+   +#+#   +#+    +#+       +#+        ",
+            " #+#        #+#+# #+#+#        #+#       #+#              #+#       #+#    #+#   #+#    #+#       #+#         ",
+            "###         ###   ###     ###########   ##########   ###########    ########    ###    ###       ###          "
         ]
         self._beginmeta = f"██VERSION: {CONFIG.framework.version}"
         self._endmeta = f"developed by {CONFIG.framework.developer}██"
         self._meta = f"{self._beginmeta}{"█"*(len(self._logo[-1])-len(self._beginmeta)-len(self._endmeta))}{self._endmeta}"
 
-        self._colored_logo = STYLE.GRADIENT(self._logo, ["#44F", "#D0F"])
-        self._colored_meta = f"{FG.BLACK}{STYLE.GRADIENT(self._meta, ["#44F", "#D4F"], "FG")}{STYLE.RESET}"
+        self._colored_logo = FG.GRADIENT(self._logo, ["#44F", "#D0F"])
+        self._colored_meta = f"{FG.BLACK}{FG.GRADIENT(self._meta, ["#44F", "#D4F"])}{STYLE.RESET}"
 
         self.template = "\n".join(self._template)
         self.default = "\n".join(["\n".join(self._logo), self._meta])
