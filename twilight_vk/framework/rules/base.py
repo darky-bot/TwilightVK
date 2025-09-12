@@ -1,3 +1,9 @@
+from typing import TYPE_CHECKING
+from typing import Any
+
+if TYPE_CHECKING:
+    from ..methods import VkMethods
+
 class BaseRule:
 
     def __init__(self, **kwargs):
@@ -8,8 +14,9 @@ class BaseRule:
         :param kwargs: Dict of addictional arguments to this function
         :type kwargs: dict
         '''
-        self.event = None
-        self.kwargs = kwargs
+        self.event: dict = None
+        self.methods: "VkMethods" = None
+        self.kwargs: dict = kwargs
         self.__parseKwargs__()
     
     def __parseKwargs__(self):
@@ -23,25 +30,102 @@ class BaseRule:
         '''
         Allows to handle errors with parsing
         '''
-        if name not in ['event', 'kwargs']:
+        if name not in ['event', 'kwargs', 'methods']:
             return getattr(self, self.kwargs[name])
-
-    async def __updateEvent__(self, event):
-        '''
-        Updates the event attribute on current one(from the function's argument)
-        '''
-        self.event = event
     
-    async def __earseEvent__(self):
+    async def __linkVkMethods__(self, methods):
         '''
-        Updates the event attribute on empty one, after handling is completed
+        Updates the methods attribute so you could make api requests from inside the rule
         '''
-        delattr(self, "event")
+        self.methods = methods
     
-    async def check(self) -> bool:
+    async def check(self, event: dict) -> bool:
         '''
         Main function with specific check logic for specific rule.
         It may be different in different rules
         It should always return the boolean as the result
         '''
         pass
+
+    def __and__(self, other: "BaseRule"):
+        return AndRule(self, other)
+    
+    def and_(self, other: "BaseRule"):
+        return AndRule(self, other)
+    
+    def __or__(self, other: "BaseRule"):
+        return OrRule(self, other)
+    
+    def or_(self, other: "BaseRule"):
+        return OrRule(self, other)
+    
+    def __not__(self):
+        return NotRule(self)
+    
+    def not_(self):
+        return NotRule(self)
+
+
+class AndRule(BaseRule):
+    
+    def __init__(self, *rules: BaseRule):
+        '''
+        Модификатор AND для комбинирования правил
+        '''
+        self.rules = rules
+
+    async def check(self, event: dict):
+        results = {}
+
+        for rule in self.rules:
+
+            result = await rule.check(event)
+
+            if isinstance(result, Exception):
+                return result
+            
+            if result is False:
+                return False
+            
+            if isinstance(result, dict):
+                results.update(result)
+
+        if results != {}:
+            return results
+        
+        return True
+
+class OrRule(BaseRule):
+    
+    def __init__(self, *rules: BaseRule):
+        '''
+        Модификатор OR для комбинирования правил
+        '''
+        self.rules = rules
+    
+    async def check(self, event: dict):
+
+        for rule in self.rules:
+
+            result = await rule.check(event)
+
+            if isinstance(result, Exception):
+                return result
+            
+            if result is True:
+                return True
+            
+        return False
+
+class NotRule(BaseRule):
+    
+    def __init__(self, rule: BaseRule):
+        '''
+        Модификатор NOT для комбинирования правил
+        '''
+        self.rule = rule
+    
+    async def check(self, event: dict):
+
+        result = await self.rule.check(event)
+        return not result if isinstance(result, bool) else False

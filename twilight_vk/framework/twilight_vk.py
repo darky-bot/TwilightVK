@@ -41,7 +41,7 @@ class TwilightVK:
         self.logo = LogoComponent()
         self.logger = DarkyLogger(logger_name=f"twilight-vk", configuration=CONFIG.LOGGER)
 
-        self.logger.debug(f"Initializing framework...")
+        self.logger.info(f"Initializing framework...")
 
         self.started = False
 
@@ -170,6 +170,8 @@ class TwilightVK:
             self.should_stop()
 
             if force:
+
+                self.logger.warning(f"Forced stop. For soft stop - use TwilightVK.should_stop() method")
 
                 if not tasks:
                     tasks = asyncio.all_tasks(self.__loop__)

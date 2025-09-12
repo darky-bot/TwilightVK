@@ -60,12 +60,14 @@ class BASE_EVENT_HANDLER:
         '''
         self.logger.debug(f"Checking rule {rule.__class__.__name__}({rule.__dict__})...")
 
-        await rule.__updateEvent__(event)
-        result = await rule.check()
+        if not hasattr(rule, "methods") or rule.methods is None:
+            self.logger.debug(f"Linking VkMethods class to the {rule.__class__.__name__}...")
+            await rule.__linkVkMethods__(self.vk_methods)
+        
+        self.logger.debug(f"Executing {rule.__class__.__name__}.check()")
+        result = await rule.check(event)
 
         self.logger.debug(f"Rule {rule.__class__.__name__} returned the {result}")
-        
-        await rule.__earseEvent__()
 
         return result
 

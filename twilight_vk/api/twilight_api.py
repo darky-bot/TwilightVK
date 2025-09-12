@@ -45,7 +45,7 @@ class TwilightAPI:
         self.logo = LogoComponent()
         self.logger = DarkyLogger(logger_name=f"twilight-api", configuration=CONFIG.LOGGER)
         
-        self.logger.debug(f"Initializing API...")
+        self.logger.info(f"Initializing API...")
 
         self.__shutdown_initiated__ = False
 

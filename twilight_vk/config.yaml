@@ -39,7 +39,7 @@ JSON_LOGGER:
       backupCount: 1
       encoding: "utf-8"
     console:
-      level: INFO
+      level: INIT
       class: "logging.StreamHandler"
       formatter: "console"
     uvicorn_access_console:
