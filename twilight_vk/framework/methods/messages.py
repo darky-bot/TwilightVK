@@ -4,10 +4,36 @@ from .base import BaseMethodsGroup
 
 class Messages(BaseMethodsGroup):
 
+    async def getConversationMembers(self,
+                                     peer_id: int,
+                                     offset: int | None = None,
+                                     count: int | None = None,
+                                     extended: bool = False,
+                                     fields: str | None = None,
+                                     group_id: int | None = None,
+                                     **kwargs):
+        '''
+        Метод получает список участников беседы.
+        (см. https://dev.vk.ru/ru/method/messages.getConversationMembers)
+        '''
+        values = {
+            "peer_id": peer_id,
+            "offset": abs(offset) if offset is not None else None,
+            "count": abs(count) if count is not None else None,
+            "extended": extended,
+            "fields": fields,
+            "group_id": abs(group_id) if group_id is not None else self.__group_id__,
+            "v": self.__api_version__
+        }
+        response = await self.base_api.base_get_method(api_method=f"{self.method}.getConversationMembers",
+                                                       values=values,
+                                                       validate=False)
+        return response
+
     async def getConversationById(self,
                                   peer_ids: int | list[int],
                                   extended: bool = False,
-                                  fields: str = None,
+                                  fields: str | None = None,
                                   group_id: int | None = None,
                                   **kwargs):
         '''
