@@ -59,4 +59,16 @@ class TwiML:
         :param message: Message text
         :type message: str
         '''
-        pass
+        pattern = r"\[(\w+)(\d+)\|(\w+)\]"
+        mentions = re.findall(pattern, message)
+
+        result = {
+            "mentions": [{
+                "type": mention[0],
+                "id": int(mention[1]),
+                "screen_name": f"{mention[0]}{mention[1]}",
+                "text": mention[2]
+            } for mention in mentions]
+        }
+
+        return result
