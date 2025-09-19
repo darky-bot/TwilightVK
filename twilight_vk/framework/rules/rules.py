@@ -88,15 +88,31 @@ class TwiMLRule(BaseRule):
 
 class MentionRule(BaseRule):
 
-    def __init__(self):
+    def __init__(self,
+                 return_list: bool = True):
         '''
         Проверяет наличие упоминаний в сообщении
-        возвращает словарь найденных упоминаний или False если ни одного упоминания не было в сообщении
+        возвращает словарь найденных упоминаний/True или False если ни одного упоминания не было в сообщении
+        
+        :param return_list: Дает понять нужно ли возвращать список упоминаний или достаточно просто оповестить что упоминание было
+        :type return_list:
         '''
-        pass
+        self.return_list = return_list
 
     async def check(self, event: dict):
-        pass
+        text: str = event["object"]["message"]["text"]
+
+        twiml = TwiML()
+        result = await twiml.extract_mentions(text)
+
+        if result == {"mentions": []}:
+            return False
+        
+        if self.return_list:
+            return result
+        
+        return True
+
 
 class ReplyRule(BaseRule):
     pass
@@ -104,6 +120,9 @@ class ReplyRule(BaseRule):
 class ForwardRule(BaseRule):
     pass
 
+
+class IsMentionedRule(BaseRule):
+    pass
 
 class IsAdminRule(BaseRule):
 

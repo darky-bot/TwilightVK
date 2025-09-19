@@ -2,6 +2,7 @@ from .rules import (
     FalseRule,
     TrueRule,
     TextRule,
-    TwiMLRule
+    TwiMLRule,
+    MentionRule
 )
 from .base import BaseRule
