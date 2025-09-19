@@ -64,7 +64,7 @@ async def test_auth_success(caplog, monkeypatch):
     )
 
     async def fake_getBotLongPollServer():
-        fake_response = fake_response = MockGetLongPollServer(True)
+        fake_response = MockGetLongPollServer(True)
         return await bot.__bot__.eventValidator.validate(fake_response)
     
     monkeypatch.setattr(bot.__bot__.vk_methods.groups, "getLongPollServer", fake_getBotLongPollServer)
