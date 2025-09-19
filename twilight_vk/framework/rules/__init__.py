@@ -1,6 +1,6 @@
 from .rules import (
-    GetFalse,
-    GetTrue,
+    FalseRule,
+    TrueRule,
     TextRule,
     TwiMLRule
 )

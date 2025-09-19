@@ -1,17 +1,25 @@
 from .base import BaseRule
 from ...utils.twiml import TwiML
 
-class GetTrue(BaseRule):
+class TrueRule(BaseRule):
 
     def __init__(self):
+        '''
+        Возвращает всегда True
+        Правило сделано в основном для теста
+        '''
         pass
 
     async def check(self, event: dict):
         return True
 
-class GetFalse(BaseRule):
+class FalseRule(BaseRule):
 
     def __init__(self):
+        '''
+        Возвращает всегда False
+        Правило сделано в основном для теста
+        '''
         pass
 
     async def check(self, event: dict):
@@ -70,7 +78,7 @@ class TwiMLRule(BaseRule):
             value = value.lower() if self.ignore_case else value
 
             twiml.update_template(value)
-            result = twiml.parse(text)
+            result = await twiml.parse(text)
 
             if result is not None:
                 return result
