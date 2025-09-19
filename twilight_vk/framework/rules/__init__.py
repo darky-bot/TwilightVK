@@ -3,6 +3,7 @@ from .rules import (
     TrueRule,
     TextRule,
     TwiMLRule,
-    MentionRule
+    MentionRule,
+    IsMentionedRule
 )
 from .base import BaseRule

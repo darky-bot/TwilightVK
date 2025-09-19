@@ -51,11 +51,13 @@ def mentions_dataset():
         "messages": [
             "",
             "test",
-            "[id1|UserTest]",
+            "[id1|@durov]",
+            "[id123|UserTest]",
             "test [id1|UserTest]",
             "[id1|UserTest] test",
             "[id1|UserTest1] [id2|UserTest2]",
-            "[club1|GroupTest]",
+            "[club1|@club1]",
+            "[club123|GroupTest]",
             "test [club1|GroupTest]",
             "[club1|GroupTest] test",
             "[club1|GroupTest1] [club1|GroupTest2]",
@@ -64,11 +66,13 @@ def mentions_dataset():
         "results": [
             {"mentions": []},
             {"mentions": []},
-            {"mentions": [{"type": "id", "id": 1, "screen_name": "id1", "text": "UserTest"}]},
+            {"mentions": [{"type": "id", "id": 1, "screen_name": "id1", "text": "@durov"}]},
+            {"mentions": [{"type": "id", "id": 123, "screen_name": "id123", "text": "UserTest"}]},
             {"mentions": [{"type": "id", "id": 1, "screen_name": "id1", "text": "UserTest"}]},
             {"mentions": [{"type": "id", "id": 1, "screen_name": "id1", "text": "UserTest"}]},
             {"mentions": [{"type": "id", "id": 1, "screen_name": "id1", "text": "UserTest1"}, {"type": "id", "id": 2, "screen_name": "id2", "text": "UserTest2"}]},
-            {"mentions": [{"type": "club", "id": 1, "screen_name": "club1", "text": "GroupTest"}]},
+            {"mentions": [{"type": "club", "id": 1, "screen_name": "club1", "text": "@club1"}]},
+            {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "GroupTest"}]},
             {"mentions": [{"type": "club", "id": 1, "screen_name": "club1", "text": "GroupTest"}]},
             {"mentions": [{"type": "club", "id": 1, "screen_name": "club1", "text": "GroupTest"}]},
             {"mentions": [{"type": "club", "id": 1, "screen_name": "club1", "text": "GroupTest1"}, {"type": "club", "id": 1, "screen_name": "club1", "text": "GroupTest2"}]},
@@ -83,6 +87,6 @@ def mentions_dataset():
 
 @pytest.mark.asyncio
 async def test_extract_mentions(twiml: TwiML, mentions_dataset: dict):
-    for _msg in range(11):
+    for _msg in range(13):
         mentions = await twiml.extract_mentions(mentions_dataset.get("messages")[_msg])
         assert mentions == mentions_dataset.get("results")[_msg]

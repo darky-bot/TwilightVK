@@ -95,7 +95,7 @@ class MentionRule(BaseRule):
         возвращает словарь найденных упоминаний/True или False если ни одного упоминания не было в сообщении
         
         :param return_list: Дает понять нужно ли возвращать список упоминаний или достаточно просто оповестить что упоминание было
-        :type return_list:
+        :type return_list: bool
         '''
         self.return_list = return_list
 
@@ -113,6 +113,25 @@ class MentionRule(BaseRule):
         
         return True
 
+class IsMentionedRule(BaseRule):
+    
+    def __init__(self):
+        '''
+        Проверяет был ли упомянут сам бот или нет
+        '''
+        pass
+
+    async def check(self, event: dict):
+        _mentions = MentionRule()
+        mentions = await _mentions.check(event)
+
+        if mentions != False:
+            for mention in mentions["mentions"]:
+                if mention["type"] == "club" and mention["id"] == event.get("group_id", 0):
+                    return True
+        
+        return False
+
 
 class ReplyRule(BaseRule):
     pass
@@ -120,9 +139,6 @@ class ReplyRule(BaseRule):
 class ForwardRule(BaseRule):
     pass
 
-
-class IsMentionedRule(BaseRule):
-    pass
 
 class IsAdminRule(BaseRule):
 

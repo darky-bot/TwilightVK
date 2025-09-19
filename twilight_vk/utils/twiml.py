@@ -59,7 +59,7 @@ class TwiML:
         :param message: Message text
         :type message: str
         '''
-        pattern = r"\[(\w+)(\d+)\|(\w+)\]"
+        pattern = r"\[([a-zA-Z]+)(\d+)\|([^\]]*)\]"
         mentions = re.findall(pattern, message)
 
         result = {
