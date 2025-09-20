@@ -98,7 +98,7 @@ class TwilightVK:
                                 self.logger.error(f"Event handling error {event}: {result}")
                                 raise result
                 except Exception as ex:
-                    self.logger.error(f"{ex.__class__.__name__}: {ex}")
+                    self.logger.error(f"{ex.__class__.__name__}: {ex}", exc_info=True)
 
             async for event_response in self.__bot__.listen():
                 if self.started:

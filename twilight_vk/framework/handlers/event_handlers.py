@@ -58,16 +58,10 @@ class BASE_EVENT_HANDLER:
         '''
         Checking rule result for current function and event
         '''
-        self.logger.debug(f"Checking rule {rule.__class__.__name__}({rule.__dict__})...")
-
         if not hasattr(rule, "methods") or rule.methods is None:
-            self.logger.debug(f"Linking VkMethods class to the {rule.__class__.__name__}...")
             await rule.__linkVkMethods__(self.vk_methods)
-        
-        self.logger.debug(f"Executing {rule.__class__.__name__}.check()")
-        result = await rule.check(event)
 
-        self.logger.debug(f"Rule {rule.__class__.__name__} returned the {result}")
+        result = await rule.__check__(event)
 
         return result
 
@@ -78,7 +72,7 @@ class BASE_EVENT_HANDLER:
         self.logger.debug(f"Checking rules for {func.__name__} from {self.__class__.__name__}...")
         rule_results = await asyncio.gather(
             *(self.__checkRule__(rule, event) for rule in handler["rules"]),
-            return_exceptions=True
+            return_exceptions=False
         )
         self.logger.debug(f"Rules check results: {rule_results}")
         self.logger.debug(f"{func.__name__}'s rules was checked")

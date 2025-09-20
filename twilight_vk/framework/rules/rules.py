@@ -3,25 +3,19 @@ from ...utils.twiml import TwiML
 
 class TrueRule(BaseRule):
 
-    def __init__(self):
-        '''
-        Возвращает всегда True
-        Правило сделано в основном для теста
-        '''
-        pass
-
+    '''
+    Возвращает всегда True
+    Правило сделано в основном для теста
+    '''
     async def check(self, event: dict):
         return True
 
 class FalseRule(BaseRule):
 
-    def __init__(self):
-        '''
-        Возвращает всегда False
-        Правило сделано в основном для теста
-        '''
-        pass
-
+    '''
+    Возвращает всегда False
+    Правило сделано в основном для теста
+    '''
     async def check(self, event: dict):
         return False
 
@@ -40,8 +34,10 @@ class TextRule(BaseRule):
         :type ignore_case: bool
         '''
 
-        self.value = value
-        self.ignore_case = ignore_case
+        super().__init__(
+            value = value,
+            ignore_case = ignore_case
+        )
 
     async def check(self, event: dict) -> bool:
         text:str = event["object"]["message"]["text"]
@@ -65,8 +61,10 @@ class TwiMLRule(BaseRule):
         :type ignore_case: bool
         '''
 
-        self.value = value
-        self.ignore_case = ignore_case
+        super().__init__(
+            value = value,
+            ignore_case = ignore_case
+        )
 
     async def check(self, event: dict) -> bool | dict:
         text:str = event["object"]["message"]["text"]
@@ -97,9 +95,11 @@ class MentionRule(BaseRule):
         :param return_list: Дает понять нужно ли возвращать список упоминаний или достаточно просто оповестить что упоминание было
         :type return_list: bool
         '''
-        self.return_list = return_list
+        super().__init__(
+            return_list = return_list
+        )
 
-    async def check(self, event: dict):
+    async def check(self, event: dict) -> bool | dict:
         text: str = event["object"]["message"]["text"]
 
         twiml = TwiML()
@@ -115,13 +115,10 @@ class MentionRule(BaseRule):
 
 class IsMentionedRule(BaseRule):
     
-    def __init__(self):
-        '''
-        Проверяет был ли упомянут сам бот или нет
-        '''
-        pass
-
-    async def check(self, event: dict):
+    '''
+    Проверяет был ли упомянут сам бот или нет
+    '''
+    async def check(self, event: dict) -> bool:
         _mentions = MentionRule()
         mentions = await _mentions.check(event)
 
@@ -140,6 +137,20 @@ class ForwardRule(BaseRule):
     pass
 
 
+class IsBotAdminRule(BaseRule):
+
+    def __init__(self):
+        '''
+        Проверяет является ли бот администратором в чате
+        Возвращает True/False в зависимости от результата
+        '''
+        super().__init__(
+
+        )
+
+    async def check(self, event: dict) -> bool:
+        pass
+
 class IsAdminRule(BaseRule):
 
     def __init__(self):
@@ -147,7 +158,9 @@ class IsAdminRule(BaseRule):
         Проверяет является ли пользователь отправивший сообщение в беседе его администратором.
         Возвращает True/False в зависимости от результата
         '''
-        pass
+        super().__init__(
+            
+        )
 
     async def check(self, event: dict) -> bool:
         pass

@@ -97,7 +97,6 @@ class BotsLongPoll(BaseLongPoll):
         Getting the event from BotsLongPoll server
         '''
         try:
-            self.wait_for_response=True
             self.logger.debug(f"Listening the BotsLongPoll server for events...")
             response = await self.httpClient.get(url=f"{self.__server__}",
                                             params={

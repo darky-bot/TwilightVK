@@ -75,6 +75,10 @@ JSON_LOGGER:
       handlers: ["console", "file"]
       level: INIT
       propagate: True
+    rule-handler:
+      handlers: ["console", "file"]
+      level: INIT
+      propagate: True
     uvicorn.access:
       handlers: ["uvicorn_access_console"]
       level: INIT

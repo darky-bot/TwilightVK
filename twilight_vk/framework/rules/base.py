@@ -1,6 +1,11 @@
 from typing import TYPE_CHECKING
 from typing import Any
 
+from ...logger.darky_logger import DarkyLogger
+from ...utils.config_loader import Configuration
+
+CONFIG = Configuration().get_config()
+
 if TYPE_CHECKING:
     from ..methods import VkMethods
 
@@ -17,7 +22,9 @@ class BaseRule:
         self.event: dict = None
         self.methods: "VkMethods" = None
         self.kwargs: dict = kwargs
+        self.logger = DarkyLogger("rule-handler", configuration=CONFIG.LOGGER, silent=True)
         self.__parseKwargs__()
+        self.logger.initdebug(f"Rule {self.__class__.__name__}({", ".join(f"{key}: {value}" for key, value in self.kwargs.items())}) is initiated")
     
     def __parseKwargs__(self):
         '''
@@ -25,20 +32,39 @@ class BaseRule:
         '''
         for key, value in self.kwargs.items():
             setattr(self, key, value)
-    
+
     def __getattr__(self, name):
         '''
         Allows to handle errors with parsing
         '''
-        if name not in ['event', 'kwargs', 'methods']:
+        if name not in ['event', 'kwargs', 'methods', 'logger']:
             return getattr(self, self.kwargs[name])
     
     async def __linkVkMethods__(self, methods):
         '''
         Updates the methods attribute so you could make api requests from inside the rule
         '''
-        self.methods = methods
+        try:
+            self.logger.debug(f"Linking VkMethods class to the {self.__class__.__name__}...")
+            self.methods = methods
+        except Exception as ex:
+            self.logger.error(f"Got an error while linking", exc_info=True)
+            return False
     
+    async def __check__(self, event: dict) -> bool:
+        '''
+        The shell for Rule.check()
+        Allows to logging
+        '''
+        try:
+            self.logger.debug(f"Checking rule {self.__class__.__name__}({self.kwargs})...")
+            response = await self.check(event)
+            self.logger.debug(f"Rule {self.__class__.__name__} returned {response}")
+            return response
+        except Exception as ex:
+            self.logger.error(f"Rule {self.__class__.__name__} returned an exception", exc_info=True)
+            return False
+
     async def check(self, event: dict) -> bool:
         '''
         Main function with specific check logic for specific rule.
@@ -72,14 +98,16 @@ class AndRule(BaseRule):
         '''
         Модификатор AND для комбинирования правил
         '''
-        self.rules = rules
+        super().__init__(
+            rules = rules
+        )
 
     async def check(self, event: dict):
         results = {}
 
         for rule in self.rules:
 
-            result = await rule.check(event)
+            result = await rule.__check__(event)
 
             if isinstance(result, Exception):
                 return result
@@ -101,13 +129,15 @@ class OrRule(BaseRule):
         '''
         Модификатор OR для комбинирования правил
         '''
-        self.rules = rules
+        super().__init__(
+            rules = rules
+        )
     
     async def check(self, event: dict):
 
         for rule in self.rules:
 
-            result = await rule.check(event)
+            result = await rule.__check__(event)
 
             if isinstance(result, Exception):
                 return result
@@ -123,9 +153,11 @@ class NotRule(BaseRule):
         '''
         Модификатор NOT для комбинирования правил
         '''
-        self.rule = rule
+        super().__init__(
+            rule = rule
+        )
     
     async def check(self, event: dict):
 
-        result = await self.rule.check(event)
+        result = await self.rule.__check__(event)
         return not result if isinstance(result, bool) else False
