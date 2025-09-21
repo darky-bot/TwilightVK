@@ -19,11 +19,55 @@ class FalseRule(BaseRule):
     async def check(self, event: dict):
         return False
 
+class TriggerRule(BaseRule):
+
+    def __init__(self,
+                 triggers: str | list[str],
+                 ignore_case: bool = False,
+                 need_list: bool = True):
+        '''
+        Проверяет наличие указанных в value фрагментов текста(триггеров) в сообщении, возвращает True при нахождении
+
+        :param triggers: Слова-триггеры
+        :type triggers: str | list[str]
+
+        :param ignore_case: Флаг игнорирования регистра
+        :type ignore_case: bool
+
+        :param need_list: Дает понять нужно ли возвращать список сработанных триггеров или достаточно просто оповестить
+        :type need_list: bool
+        '''
+        super().__init__(
+            triggers = triggers,
+            ignore_case = ignore_case,
+            need_list = need_list
+        )
+    
+    async def check(self, event: dict) -> bool | dict:
+        text: str = event["object"]["message"]["text"]
+        text = text.lower() if self.ignore_case else text
+        result = {
+            "triggers": []
+        }
+
+        for trigger in self.triggers:
+            if trigger in text:
+                if self.need_list:
+                    result["triggers"].append(trigger)
+                    continue
+                return True
+            
+        if result["triggers"] != []:
+            return result
+        
+        return False
+
+
 class TextRule(BaseRule):
 
     def __init__(self,
-                 value:str|list[str],
-                 ignore_case:bool=False):
+                 value: str | list[str],
+                 ignore_case: bool = False):
         '''
         Сверяет текст сообщения с указанным, возвращает True при совпадении
 
@@ -87,16 +131,16 @@ class TwiMLRule(BaseRule):
 class MentionRule(BaseRule):
 
     def __init__(self,
-                 return_list: bool = True):
+                 need_list: bool = True):
         '''
         Проверяет наличие упоминаний в сообщении
         возвращает словарь найденных упоминаний/True или False если ни одного упоминания не было в сообщении
         
-        :param return_list: Дает понять нужно ли возвращать список упоминаний или достаточно просто оповестить что упоминание было
-        :type return_list: bool
+        :param need_list: Дает понять нужно ли возвращать список упоминаний или достаточно просто оповестить что упоминание было
+        :type need_list: bool
         '''
         super().__init__(
-            return_list = return_list
+            need_list = need_list
         )
 
     async def check(self, event: dict) -> bool | dict:
@@ -108,7 +152,7 @@ class MentionRule(BaseRule):
         if result == {"mentions": []}:
             return False
         
-        if self.return_list:
+        if self.need_list:
             return result
         
         return True

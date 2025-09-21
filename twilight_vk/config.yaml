@@ -36,7 +36,7 @@ JSON_LOGGER:
       class: "logging.handlers.RotatingFileHandler"
       formatter: "file"
       filename: "twilight.log"
-      backupCount: 1
+      backupCount: 3
       encoding: "utf-8"
     console:
       level: INIT

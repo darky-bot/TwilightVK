@@ -24,7 +24,7 @@ class BaseRule:
         self.kwargs: dict = kwargs
         self.logger = DarkyLogger("rule-handler", configuration=CONFIG.LOGGER, silent=True)
         self.__parseKwargs__()
-        self.logger.initdebug(f"Rule {self.__class__.__name__}({", ".join(f"{key}: {value}" for key, value in self.kwargs.items())}) is initiated")
+        self.logger.initdebug(f"Rule {self.__class__.__name__}({", ".join(self.__printKwargs__())}) is initiated")
     
     def __parseKwargs__(self):
         '''
@@ -32,6 +32,15 @@ class BaseRule:
         '''
         for key, value in self.kwargs.items():
             setattr(self, key, value)
+    
+    def __printKwargs__(self):
+        output = []
+        for key, value in self.kwargs.items():
+            if key in ["rules", "rule"]:
+                output.append(f"{key}: {", ".join(obj.__class__.__name__ for obj in value)}")
+                continue
+            output.append(f"{key}: {value}")
+        return output
 
     def __getattr__(self, name):
         '''
@@ -57,7 +66,7 @@ class BaseRule:
         Allows to logging
         '''
         try:
-            self.logger.debug(f"Checking rule {self.__class__.__name__}({self.kwargs})...")
+            self.logger.debug(f"Checking rule {self.__class__.__name__}({self.__printKwargs__()})...")
             response = await self.check(event)
             self.logger.debug(f"Rule {self.__class__.__name__} returned {response}")
             return response

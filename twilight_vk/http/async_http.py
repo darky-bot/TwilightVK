@@ -53,7 +53,7 @@ class Http:
     async def post(self,
                    url:str,
                    data:dict,
-                   params:dict,
+                   params:dict={},
                    headers:dict=None,
                    raw:bool=True) -> ClientResponse | dict:
         '''
