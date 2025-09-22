@@ -165,7 +165,7 @@ async def test_polling_check_event(bot: TwilightVK, caplog, monkeypatch):
             params: dict = {},
             headers: dict = {},
             raw: bool = True
-    ):
+    ) -> MockPollingEvent:
         fake_response = MockPollingEvent("message_typing_state")
         return fake_response
     
@@ -176,22 +176,7 @@ async def test_polling_check_event(bot: TwilightVK, caplog, monkeypatch):
     monkeypatch.setattr(bot.__bot__.httpValidator, "__isValid__", fake_typeMatch)
     monkeypatch.setattr(bot.__bot__.httpClient, "get", fake_GetHttpEvent)
 
-    assert await bot.__bot__.check_event() == {
-                            "ts": "123",
-                            "updates": [
-                                {
-                                    "group_id": 123,
-                                    "type": "message_typing_state",
-                                    "event_id": "abc123",
-                                    "v": "1.234",
-                                    "object": {
-                                        "from_id": 123,
-                                        "to_id": -123,
-                                        "state": "typing"
-                                    }
-                                }
-                            ]
-                        }
+    assert await bot.__bot__.check_event() == await MockPollingEvent("message_typing_state").json()
     
 @pytest.mark.asyncio
 async def test_polling_listen(bot: TwilightVK, caplog, monkeypatch):
@@ -213,51 +198,7 @@ async def test_polling_listen(bot: TwilightVK, caplog, monkeypatch):
     monkeypatch.setattr(bot.__bot__.httpClient, "get", fake_GetHttpEvent)
 
     async for event in bot.__bot__.listen():
-        assert event == {
-                    "ts": "123",
-                    "updates": [
-                        {
-                            "group_id": "123",
-                            "type": "message_new",
-                            "event_id": "abc123",
-                            "v": "1.234",
-                            "object": {
-                                "client_info": {
-                                    "button_actions": [
-                                        "text",
-                                        "vkpay",
-                                        "open_app",
-                                        "location",
-                                        "open_link",
-                                        "open_photo",
-                                        "callback",
-                                        "intent_subscribe",
-                                        "intent_unsubscribe"
-                                    ],
-                                    "keyboard": True,
-                                    "inline_keyboard": True,
-                                    "carousel": True,
-                                    "lang_id": 0
-                                },
-                                "message": {
-                                    "date": 1000000000,
-                                    "from_id": 123,
-                                    "id": 1,
-                                    "version": 100,
-                                    "out": 0,
-                                    "fwd_messages": [],
-                                    "important": False,
-                                    "is_hidden": False,
-                                    "attachments": [],
-                                    "conversation_message_id": 1,
-                                    "text": "a",
-                                    "peer_id": 2000000001,
-                                    "random_id": 0
-                                }
-                            }
-                        }
-                    ]
-                }
+        assert event == await MockPollingEvent("message_new").json()
         break
 
 @pytest.mark.asyncio
