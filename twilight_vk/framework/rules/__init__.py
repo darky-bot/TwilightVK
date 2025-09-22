@@ -1,6 +1,7 @@
 from .rules import (
     FalseRule,
     TrueRule,
+    ContainsRule,
     TextRule,
     TwiMLRule,
     MentionRule,

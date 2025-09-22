@@ -19,14 +19,14 @@ class FalseRule(BaseRule):
     async def check(self, event: dict):
         return False
 
-class TriggerRule(BaseRule):
+class ContainsRule(BaseRule):
 
     def __init__(self,
                  triggers: str | list[str],
                  ignore_case: bool = False,
                  need_list: bool = True):
         '''
-        Проверяет наличие указанных в value фрагментов текста(триггеров) в сообщении, возвращает True при нахождении
+        Проверяет наличие указанных в value фрагментов текста в сообщении, возвращает True при нахождении
 
         :param triggers: Слова-триггеры
         :type triggers: str | list[str]
@@ -34,7 +34,7 @@ class TriggerRule(BaseRule):
         :param ignore_case: Флаг игнорирования регистра
         :type ignore_case: bool
 
-        :param need_list: Дает понять нужно ли возвращать список сработанных триггеров или достаточно просто оповестить
+        :param need_list: Дает понять нужно ли возвращать список найденных фрагментов или достаточно просто оповестить
         :type need_list: bool
         '''
         super().__init__(
@@ -181,7 +181,7 @@ class ForwardRule(BaseRule):
     pass
 
 
-class IsBotAdminRule(BaseRule):
+class IsAdminBotRule(BaseRule):
 
     def __init__(self):
         '''
@@ -208,3 +208,7 @@ class IsAdminRule(BaseRule):
 
     async def check(self, event: dict) -> bool:
         pass
+
+
+class InvitedRule(BaseRule):
+    pass
