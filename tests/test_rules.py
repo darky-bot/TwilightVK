@@ -69,17 +69,17 @@ def messages_list():
 @pytest.fixture()
 def results():
     return [
-        [True, False, {"triggers": ["test"]}, True, False, False, False, False, False],
-        [True, False, {"triggers": ["test", "darky"]}, True, {"variable": "darky"}, False, False, True, False],
-        [True, False, {"triggers": ["test"]}, False, {"variable": "test"}, False, False, False, True],
-        [True, False, {"triggers": ["test"]}, False, {"variable": "[club123|@club123]"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, False],
-        [True, False, False, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, True, False],
-        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, True],
-        [True, False, {"triggers": ["test"]}, False, {"variable": "[id1234|@id1234]"}, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, False],
-        [True, False, False, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, True, False],
-        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, True],
-        [True, False, {"triggers": ["darky"]}, False, False, False, False, False, False],
-        [True, False, {"triggers": ["test", "darky"]}, False, {"variable": "[club123|@club123] [id1234|@id1234] darky"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}, {"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, True, True, False]
+        [True, False, {"triggers": ["test"]}, True, False, False, False, False, False, False, True],
+        [True, False, {"triggers": ["test", "darky"]}, True, {"variable": "darky"}, False, False, True, False, False, True],
+        [True, False, {"triggers": ["test"]}, False, {"variable": "test"}, False, False, False, True, False, True],
+        [True, False, {"triggers": ["test"]}, False, {"variable": "[club123|@club123]"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, False, False, True],
+        [True, False, False, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, True, False, False, True],
+        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, True, False, True],
+        [True, False, {"triggers": ["test"]}, False, {"variable": "[id1234|@id1234]"}, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, False, False, True],
+        [True, False, False, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, True, False, False, True],
+        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, True, False, True],
+        [True, False, {"triggers": ["darky"]}, False, False, False, False, False, False, False, True],
+        [True, False, {"triggers": ["test", "darky"]}, False, {"variable": "[club123|@club123] [id1234|@id1234] darky"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}, {"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, True, True, False, False, True]
     ]
 
 @pytest.fixture
@@ -123,9 +123,30 @@ def handler_results():
         }
     ]
 
+class MockVkMethods:
+
+    def __init__(self):
+        pass
+    
+    class messages():
+        async def getConversationMembers(peer_id):
+            return {
+                "response": {
+                    "items": [
+                        {
+                            "member_id": 1234
+                        },
+                        {
+                            "member_id": -123,
+                            "is_admin": True
+                        }
+                    ]
+                }
+            }
+        
 @pytest.fixture()
 def rules_list():
-    return [
+    rules_lst: list[BaseRule] = [
         TrueRule(),
         FalseRule(),
         ContainsRule(triggers=["test", "darky"], ignore_case=True),
@@ -134,13 +155,15 @@ def rules_list():
         MentionRule(),
         IsMentionedRule(),
         ReplyRule(),
-        ForwardRule()
+        ForwardRule(),
+        AdminRule(),
+        IsAdminRule()
     ]
-
-class MockVkMethods:
-
-    def __init__(self):
-        pass
+    all_rules = []
+    for rule in rules_lst:
+        rule.methods = MockVkMethods()
+        all_rules.append(rule)
+    return all_rules
 
 @pytest.mark.asyncio
 async def test_rules(fake_event: dict, messages_list: list, results: list, rules_list: list[BaseRule]):

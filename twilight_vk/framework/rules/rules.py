@@ -204,7 +204,16 @@ class AdminRule(BaseRule):
     Возвращает True/False в зависимости от результата
     '''
     async def check(self, event: dict) -> bool:
-        pass
+        chat_members = await self.methods.messages.getConversationMembers(
+            peer_id=event["object"]["message"]["peer_id"]
+        )
+        for member in chat_members["response"]["items"]:
+            if (
+                member.get("member_id") == event["object"]["message"]["from_id"] and 
+                member.get("is_admin", False)
+            ):
+                return True
+        return False
 
 class IsAdminRule(BaseRule):
 
@@ -213,7 +222,16 @@ class IsAdminRule(BaseRule):
     Возвращает True/False в зависимости от результата
     '''
     async def check(self, event: dict) -> bool:
-        pass
+        chat_members = await self.methods.messages.getConversationMembers(
+            peer_id=event["object"]["message"]["peer_id"]
+        )
+        for member in chat_members["response"]["items"]:
+            if (
+                member.get("member_id") == -event.get("group_id") and
+                member.get("is_admin", False)
+            ):
+                return True
+        return False
 
 
 class InvitedRule(BaseRule):

@@ -7,6 +7,8 @@ from .rules import (
     MentionRule,
     IsMentionedRule,
     ReplyRule,
-    ForwardRule
+    ForwardRule,
+    AdminRule,
+    IsAdminRule
 )
 from .base import BaseRule
