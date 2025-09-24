@@ -175,40 +175,59 @@ class IsMentionedRule(BaseRule):
 
 
 class ReplyRule(BaseRule):
-    pass
+
+    '''
+    Проверяет наличие ответа в событии.
+    Возвращает True/False в зависимости от результата
+    '''
+    async def check(self, event: dict) -> bool:
+        if event["object"]["message"].get("reply_message", None) is not None:
+            return True
+        return False
 
 class ForwardRule(BaseRule):
-    pass
+
+    '''
+    Проверяет наличие пересланного сообщения в событии.
+    Возвращает True/False в зависимости от результата.
+    '''
+    async def check(self, event: dict) -> bool:
+        if event["object"]["message"].get("fwd_messages") != []:
+            return True
+        return False
 
 
-class IsAdminBotRule(BaseRule):
+class AdminRule(BaseRule):
 
-    def __init__(self):
-        '''
-        Проверяет является ли бот администратором в чате
-        Возвращает True/False в зависимости от результата
-        '''
-        super().__init__(
-
-        )
-
+    '''
+    Проверяет является ли пользователь отправивший сообщение в беседе его администратором
+    Возвращает True/False в зависимости от результата
+    '''
     async def check(self, event: dict) -> bool:
         pass
 
 class IsAdminRule(BaseRule):
 
-    def __init__(self):
-        '''
-        Проверяет является ли пользователь отправивший сообщение в беседе его администратором.
-        Возвращает True/False в зависимости от результата
-        '''
-        super().__init__(
-            
-        )
-
+    '''
+    Проверяет является ли бот администратором в чате
+    Возвращает True/False в зависимости от результата
+    '''
     async def check(self, event: dict) -> bool:
         pass
 
 
 class InvitedRule(BaseRule):
-    pass
+    
+    '''
+    Возвращает True если какой-либо пользователь был добавлен в чат.
+    '''
+    async def check(self, event: dict) -> bool:
+        pass
+    
+class IsInvitedRule(BaseRule):
+
+    '''
+    Возвращает True если бот был добавлен в чат
+    '''
+    async def check(self, event: dict) -> bool:
+        pass

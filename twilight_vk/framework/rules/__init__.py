@@ -5,6 +5,8 @@ from .rules import (
     TextRule,
     TwiMLRule,
     MentionRule,
-    IsMentionedRule
+    IsMentionedRule,
+    ReplyRule,
+    ForwardRule
 )
 from .base import BaseRule
