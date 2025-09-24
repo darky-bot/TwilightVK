@@ -13,7 +13,6 @@ def fake_event():
             "message": {
                 "from_id": 1234,
                 "id": 1,
-                "reply_message": {},
                 "fwd_messages": [],
                 "attachments": [],
                 "conversation_message_id": 1,
@@ -25,34 +24,62 @@ def fake_event():
 
 @pytest.fixture()
 def messages_list():
-    return [
-        "test",
-        "test darky",
-        "test test",
-        "test [club123|@club123]",
-        "[club123|@club123]",
-        "[club123|@club123] test",
-        "test [id1234|@id1234]",
-        "[id1234|@id1234]",
-        "[id1234|@id1234] test",
-        "darky",
-        "test [club123|@club123] [id1234|@id1234] darky"
-    ]
+    return {
+        "messages": [
+            "test",
+            "test darky",
+            "test test",
+            "test [club123|@club123]",
+            "[club123|@club123]",
+            "[club123|@club123] test",
+            "test [id1234|@id1234]",
+            "[id1234|@id1234]",
+            "[id1234|@id1234] test",
+            "darky",
+            "test [club123|@club123] [id1234|@id1234] darky"
+        ],
+        "replies": [
+            None,
+            {"test": "message"},
+            None,
+            None,
+            {"test": "message"},
+            None,
+            None,
+            {"test": "message"},
+            None,
+            None,
+            {"test": "message"}
+        ],
+        "fwds": [
+            [],
+            [],
+            [{"test": "message"}],
+            [],
+            [],
+            [{"test": "message"}],
+            [],
+            [],
+            [{"test": "message"}],
+            [],
+            []
+        ]
+    }
 
 @pytest.fixture()
 def results():
     return [
-        [True, False, {"triggers": ["test"]}, True, False, False, False],
-        [True, False, {"triggers": ["test", "darky"]}, True, {"variable": "darky"}, False, False],
-        [True, False, {"triggers": ["test"]}, False, {"variable": "test"}, False, False],
-        [True, False, {"triggers": ["test"]}, False, {"variable": "[club123|@club123]"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True],
-        [True, False, False, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True],
-        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True],
-        [True, False, {"triggers": ["test"]}, False, {"variable": "[id1234|@id1234]"}, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False],
-        [True, False, False, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False],
-        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False],
-        [True, False, {"triggers": ["darky"]}, False, False, False, False],
-        [True, False, {"triggers": ["test", "darky"]}, False, {"variable": "[club123|@club123] [id1234|@id1234] darky"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}, {"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, True]
+        [True, False, {"triggers": ["test"]}, True, False, False, False, False, False],
+        [True, False, {"triggers": ["test", "darky"]}, True, {"variable": "darky"}, False, False, True, False],
+        [True, False, {"triggers": ["test"]}, False, {"variable": "test"}, False, False, False, True],
+        [True, False, {"triggers": ["test"]}, False, {"variable": "[club123|@club123]"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, False],
+        [True, False, False, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, True, False],
+        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, True],
+        [True, False, {"triggers": ["test"]}, False, {"variable": "[id1234|@id1234]"}, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, False],
+        [True, False, False, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, True, False],
+        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, True],
+        [True, False, {"triggers": ["darky"]}, False, False, False, False, False, False],
+        [True, False, {"triggers": ["test", "darky"]}, False, {"variable": "[club123|@club123] [id1234|@id1234] darky"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}, {"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, True, True, False]
     ]
 
 @pytest.fixture
@@ -105,7 +132,9 @@ def rules_list():
         TextRule(value=["test", "test darky"], ignore_case=True),
         TwiMLRule(value=["test <variable>"], ignore_case=True),
         MentionRule(),
-        IsMentionedRule()
+        IsMentionedRule(),
+        ReplyRule(),
+        ForwardRule()
     ]
 
 class MockVkMethods:
@@ -115,15 +144,23 @@ class MockVkMethods:
 
 @pytest.mark.asyncio
 async def test_rules(fake_event: dict, messages_list: list, results: list, rules_list: list[BaseRule]):
-    for test in range(len(messages_list)):
-        fake_event["object"]["message"]["text"] = messages_list[test]
-        rule_results = [await rule.check(fake_event) for rule in rules_list]
+    for test in range(len(messages_list["messages"])):
+        fake_event["object"]["message"]["text"] = messages_list["messages"][test]
+        fake_event["object"]["message"]["reply_message"] = messages_list["replies"][test]
+        if fake_event["object"]["message"]["reply_message"] == None:
+            fake_event["object"]["message"].__delitem__("reply_message")
+        fake_event["object"]["message"]["fwd_messages"] = messages_list["fwds"][test]
+        rule_results = [await rule.__check__(fake_event) for rule in rules_list]
         assert rule_results == results[test]
 
 @pytest.mark.asyncio
-async def test_handlerRulesInput(fake_event: dict, messages_list: list, results: list, rules_list: list[BaseRule], handler_results: list):
-    for test in range(len(messages_list)):
-        fake_event["object"]["message"]["text"] = messages_list[test]
-        rule_results = [await rule.check(fake_event) for rule in rules_list]
+async def test_handlerinput(fake_event: dict, messages_list: list, results: list, rules_list: list[BaseRule], handler_results: list):
+    for test in range(len(messages_list["messages"])):
+        fake_event["object"]["message"]["text"] = messages_list["messages"][test]
+        fake_event["object"]["message"]["reply_message"] = messages_list["replies"][test]
+        if fake_event["object"]["message"]["reply_message"] == None:
+            fake_event["object"]["message"].__delitem__("reply_message")
+        fake_event["object"]["message"]["fwd_messages"] = messages_list["fwds"][test]
+        rule_results = [await rule.__check__(fake_event) for rule in rules_list]
         handler_result = await DEFAULT_HANDLER(MockVkMethods()).__extractArgs__(rule_results)
         assert handler_result == handler_results[test]

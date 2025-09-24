@@ -30,7 +30,7 @@ class MockGetLongPollServer():
                 "response": {
                                 "server": "https://fakeserverurl",
                                 "key": "fakekey",
-                                "ts": "123"
+                                "ts": 123
                             }
             }
         return {
@@ -68,7 +68,7 @@ class MockPollingEvent():
         match self.event_type:
             case "message_typing_state":
                 return {
-                    "ts": "123",
+                    "ts": 123,
                     "updates": [
                         {
                             "group_id": 123,
@@ -85,40 +85,20 @@ class MockPollingEvent():
                 }
             case "message_new":
                 return {
-                    "ts": "123",
+                    "ts": 123,
                     "updates": [
                         {
-                            "group_id": "123",
+                            "group_id": 123,
                             "type": "message_new",
                             "event_id": "abc123",
                             "v": "1.234",
                             "object": {
-                                "client_info": {
-                                    "button_actions": [
-                                        "text",
-                                        "vkpay",
-                                        "open_app",
-                                        "location",
-                                        "open_link",
-                                        "open_photo",
-                                        "callback",
-                                        "intent_subscribe",
-                                        "intent_unsubscribe"
-                                    ],
-                                    "keyboard": True,
-                                    "inline_keyboard": True,
-                                    "carousel": True,
-                                    "lang_id": 0
-                                },
+                                "client_info": {},
                                 "message": {
                                     "date": 1000000000,
                                     "from_id": 123,
                                     "id": 1,
-                                    "version": 100,
-                                    "out": 0,
                                     "fwd_messages": [],
-                                    "important": False,
-                                    "is_hidden": False,
                                     "attachments": [],
                                     "conversation_message_id": 1,
                                     "text": "a",
@@ -129,6 +109,32 @@ class MockPollingEvent():
                         }
                     ]
                 }
+            case "failed 1":
+                return {"failed": 1,
+                        "ts": 30}
+            case "failed 2":
+                return {"failed": 2}
+            case "failed 3":
+                return {"failed": 3}
+
+async def mock_polling(bot: TwilightVK, type: str, monkeypatch):
+    async def fake_GetHttpEvent(
+            url: str,
+            params: dict = {},
+            headers: dict = {},
+            raw: bool = True
+    ):
+        fake_response = MockPollingEvent(type)
+        return fake_response
+    
+    async def fake_typeMatch(response: ClientResponse,
+                             self = bot.__bot__.httpValidator):
+        return True
+
+    monkeypatch.setattr(bot.__bot__.httpValidator, "__isValid__", fake_typeMatch)
+    monkeypatch.setattr(bot.__bot__.httpClient, "get", fake_GetHttpEvent)
+
+    return bot
 
 @pytest.mark.asyncio
 async def test_authorization(bot: TwilightVK, caplog, monkeypatch):
@@ -159,47 +165,40 @@ async def test_authorization(bot: TwilightVK, caplog, monkeypatch):
 
 @pytest.mark.asyncio
 async def test_polling_check_event(bot: TwilightVK, caplog, monkeypatch):
-
-    async def fake_GetHttpEvent(
-            url: str,
-            params: dict = {},
-            headers: dict = {},
-            raw: bool = True
-    ) -> MockPollingEvent:
-        fake_response = MockPollingEvent("message_typing_state")
-        return fake_response
-    
-    async def fake_typeMatch(response: ClientResponse,
-                             self = bot.__bot__.httpValidator):
-        return True
-
-    monkeypatch.setattr(bot.__bot__.httpValidator, "__isValid__", fake_typeMatch)
-    monkeypatch.setattr(bot.__bot__.httpClient, "get", fake_GetHttpEvent)
-
+    bot = await mock_polling(bot, "message_typing_state", monkeypatch)
     assert await bot.__bot__.check_event() == await MockPollingEvent("message_typing_state").json()
     
 @pytest.mark.asyncio
 async def test_polling_listen(bot: TwilightVK, caplog, monkeypatch):
-
-    async def fake_GetHttpEvent(
-            url: str,
-            params: dict = {},
-            headers: dict = {},
-            raw: bool = True
-    ):
-        fake_response = MockPollingEvent("message_new")
-        return fake_response
-    
-    async def fake_typeMatch(response: ClientResponse,
-                             self = bot.__bot__.httpValidator):
-        return True
-
-    monkeypatch.setattr(bot.__bot__.httpValidator, "__isValid__", fake_typeMatch)
-    monkeypatch.setattr(bot.__bot__.httpClient, "get", fake_GetHttpEvent)
-
+    bot = await mock_polling(bot, "message_new", monkeypatch)
     async for event in bot.__bot__.listen():
         assert event == await MockPollingEvent("message_new").json()
         break
+
+@pytest.mark.asyncio
+async def test_polling_failed(bot: TwilightVK, caplog, monkeypatch):
+
+    bot.should_stop()
+
+    async def fake_getBotLongPollServer():
+        fake_response = MockGetLongPollServer(True)
+        return await bot.__bot__.eventValidator.validate(fake_response)
+    
+    monkeypatch.setattr(bot.__bot__.vk_methods.groups, "getLongPollServer", fake_getBotLongPollServer)
+
+    failed_codes = ["1", "2", "3"]
+
+    for code in failed_codes:
+        bot = await mock_polling(bot, f"failed {code}", monkeypatch)
+
+        await bot.__bot__.check_event()
+
+        if code == "1":
+            assert bot.__bot__.__ts__ == 30
+        
+    assert "The event history is outdated or has been partially lost. The application can receive events further using the new \"ts\" value from the response." in caplog.text
+    assert "The key is expired. Getting new one..." in caplog.text
+    assert "The information is lost. Reauthorizing..." in caplog.text
 
 @pytest.mark.asyncio
 async def test_polling_stop(bot: TwilightVK, caplog, monkeypatch):
