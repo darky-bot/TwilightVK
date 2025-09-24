@@ -1,4 +1,5 @@
 from aiohttp.client_exceptions import ClientConnectorDNSError
+from aiohttp import ClientResponse
 
 from .base_longpoll import BaseLongPoll
 from ..exceptions.vkapi import (
@@ -122,7 +123,7 @@ class BotsLongPoll(BaseLongPoll):
                 case 1:
                     self.logger.warning(f"The event history is outdated or has been partially lost. "\
                                         f"The application can receive events further using the new \"ts\" value from the response.")
-                    self.__ts__ = await response.json()["ts"]
+                    self.__ts__ = ex.new_ts
                 case 2:
                     self.logger.warning(f"The key is expired. Getting new one...")
                     await self.auth(update_ts=False)
@@ -130,7 +131,8 @@ class BotsLongPoll(BaseLongPoll):
                     self.logger.error(f"The information is lost. Reauthorizing...")
                     await self.auth()
             self.logger.debug(f"Retrying to get event...")
-            return await self.check_event()
+            if not self.__stop__:
+                return await self.check_event()
         except VkApiError as ex:
             self.logger.critical("Request to VK API was handled with error", exc_info=True)
             self.stop()
