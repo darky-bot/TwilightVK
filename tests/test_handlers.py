@@ -17,32 +17,47 @@ def bot():
 class MockPolling:
 
     def get() -> dict:
-        return {
-                    "group_id": 123,
-                    "type": "message_new",
-                    "object": {
-                        "client_info": {},
-                        "message": {
-                            "from_id": 123,
-                            "text": "abc"
-                        }
-                    }
-                }
+        events = {"updates": []}
+        for attr_name, attr_value in vars(BotEventType).items():
+            if "__" not in attr_name:
+                events["updates"].append({"type": attr_value})
+        return events
+
     
 @pytest.mark.asyncio
-async def test_messagenew_handler(bot: TwilightVK, monkeypatch):
-    
-    @bot.on_event.message_new(TrueRule())
+async def test_labeler(bot: TwilightVK, caplog):
+
+    @bot.on_event.all(TrueRule())
     async def handle(event: dict):
         return "OK"
     
-    async def fake_outputHandler(func, callback, event):
+    for record in caplog.records:
+        if record.levelname == "INIT":
+            assert record.message in ["Rule TrueRule() is initiated",
+                                      "handle() was added to MESSAGE_NEW with rules: ['TrueRule']",
+                                      "handle() was added to MESSAGE_REPLY with rules: ['TrueRule']",
+                                      "handle() was added to DEFAULT_HANDLER with rules: ['TrueRule']"]
+    for handler_name in bot.__bot__.event_handler._handlers.keys():
+        assert bot.__bot__.event_handler._handlers[handler_name].__funcs__[0].get("func", False) == handle
+        assert isinstance(bot.__bot__.event_handler._handlers[handler_name].__funcs__[0].get("rules")[0], TrueRule)
+    
+@pytest.mark.asyncio
+async def test_eventhandlers(bot: TwilightVK, monkeypatch):
+    
+    @bot.on_event.all(TrueRule())
+    async def handle(event: dict):
+        assert isinstance(event, dict)
+        assert event.keys() == {'type': 'test'}.keys()
+        return "OK"
+    
+    async def fake_outputHandler(*args, **kwargs):
         assert True
     
-    monkeypatch.setattr(bot.__bot__.event_handler._handlers[BotEventType.MESSAGE_NEW], "__handleOutput__", fake_outputHandler)
-    
+    for handler_name in bot.__bot__.event_handler._handlers.keys():
+        monkeypatch.setattr(bot.__bot__.event_handler._handlers[handler_name], "__handleOutput__", fake_outputHandler)
+
     results = await asyncio.gather(
-        bot.__bot__.event_handler.handle(MockPolling.get()),
+        *(bot.__bot__.event_handler.handle(event) for event in MockPolling.get()["updates"]),
         return_exceptions=True
     )
     for result in results:

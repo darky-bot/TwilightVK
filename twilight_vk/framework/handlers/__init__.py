@@ -21,7 +21,7 @@ class OnEventLabeler:
         def decorator(func):
             for handler_name in self.handlers.keys():
                 self.handlers[handler_name].__add__(func, rules)
-                return func
+            return func
         return decorator
     
     def message_new(self, *rules):

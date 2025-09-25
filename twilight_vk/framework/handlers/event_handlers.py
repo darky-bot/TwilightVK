@@ -33,7 +33,7 @@ class BASE_EVENT_HANDLER:
 
         self.vk_methods = vk_methods
 
-        self.__funcs__: List[Callable] = []
+        self.__funcs__: List[dict[list[BaseRule], Callable]] = []
     
     def __add__(self, 
                 func, 
