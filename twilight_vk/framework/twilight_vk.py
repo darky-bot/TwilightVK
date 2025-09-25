@@ -140,7 +140,7 @@ class TwilightVK:
                 for task_result in tasks_results:
                     try:
                         task_result.result()
-                    except Exception as exc:  # noqa: PERF203
+                    except Exception as exc:
                         self.logger.critical(exc)
                 tasks = asyncio.all_tasks(self.__loop__)
 

@@ -4,7 +4,7 @@ import asyncio
 from twilight_vk import TwilightVK
 from twilight_vk.framework.rules import TrueRule
 from twilight_vk.framework.exceptions.framework import FrameworkError
-from twilight_vk.framework.handlers.events import BotEventType
+from twilight_vk.utils.event_types import BotEventType
 
 @pytest.fixture
 def bot():

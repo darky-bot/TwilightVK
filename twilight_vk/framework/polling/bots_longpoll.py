@@ -10,7 +10,7 @@ from ..exceptions.vkapi import (
 from ...utils.config_loader import Configuration
 from ..methods.base import VkBaseMethods
 from ..methods import VkMethods
-from ..handlers.events import EventHandler
+from ..handlers import EventHandler
 from ...logger.darky_logger import DarkyLogger
 from ..validators.http_validator import HttpValidator
 from ..validators.event_validator import EventValidator

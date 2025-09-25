@@ -207,6 +207,7 @@ class AdminRule(BaseRule):
         chat_members = await self.methods.messages.getConversationMembers(
             peer_id=event["object"]["message"]["peer_id"]
         )
+        member: dict
         for member in chat_members["response"]["items"]:
             if (
                 member.get("member_id") == event["object"]["message"]["from_id"] and 
@@ -225,6 +226,7 @@ class IsAdminRule(BaseRule):
         chat_members = await self.methods.messages.getConversationMembers(
             peer_id=event["object"]["message"]["peer_id"]
         )
+        member: dict
         for member in chat_members["response"]["items"]:
             if (
                 member.get("member_id") == -event.get("group_id") and

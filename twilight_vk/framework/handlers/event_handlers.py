@@ -5,9 +5,7 @@ import asyncio
 
 from ...utils.config_loader import Configuration
 from ...logger.darky_logger import DarkyLogger
-from ..validators.event_validator import EventValidator
-from ..validators.http_validator import HttpValidator
-from .response import ResponseHandler
+from .response_handler import ResponseHandler
 from ..exceptions.handler import (
     ResponseHandlerError
 )
@@ -131,7 +129,7 @@ class BASE_EVENT_HANDLER:
                 return response
             if isinstance(callback, None):
                 return True
-        raise ResponseHandlerError(callback)
+        raise ResponseHandlerError(callback, isinstance(callback, ResponseHandler | None))
         
     async def __callFunc__(self, handler:dict, event:dict):
         '''

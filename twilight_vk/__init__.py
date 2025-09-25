@@ -1,6 +1,8 @@
 from typing import TYPE_CHECKING
 
 from .framework.twilight_vk import TwilightVK
+
+from .framework.handlers import *
 from .framework.exceptions import *
 from .framework.rules import *
 

@@ -1,5 +1,9 @@
-from ..handlers.response import ResponseHandler
+from typing import TYPE_CHECKING, AnyStr
+
 from .framework import FrameworkError
+
+if TYPE_CHECKING:
+    from ..handlers.response_handler import ResponseHandler
 
 class HandlerError(FrameworkError):
 
@@ -21,15 +25,21 @@ class HandlerError(FrameworkError):
 class ResponseHandlerError(HandlerError):
 
     def __init__(self,
-                 callback):
+                 callback: "ResponseHandler" | AnyStr,
+                 _isinstance: bool = None):
         '''
-        Исключение обработчика ответов
+        Исключение обработчика ответов от функций
 
         :param callback: Ответ от функции, которая выполнилась в обработчике событий
+        :type callback: ResponseHandler | Any
+        
+        :param instance_needed: Класс который должен был передаться в функции (всегда должен быть ResponseHandler)
+        :type instance_needed: ResponseHandler
         '''
         self.callback = callback
+        self._isinstance = _isinstance
     
     def __str__(self):
         return f"Response handler error"\
         f"{f" : function callback is not instance of ResponseHandler, make sure you are returning correct values in your functions"\
-           if not isinstance(self.callback, ResponseHandler) else ""}"
+           if self._isinstance is not None and not self._isinstance else ""}"
