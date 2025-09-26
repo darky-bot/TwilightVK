@@ -9,6 +9,8 @@ from .rules import (
     ReplyRule,
     ForwardRule,
     AdminRule,
-    IsAdminRule
+    IsAdminRule,
+    InvitedRule,
+    IsInvitedRule
 )
 from .base import BaseRule

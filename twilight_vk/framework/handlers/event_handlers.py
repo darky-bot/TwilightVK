@@ -5,7 +5,7 @@ import asyncio
 
 from ...utils.config_loader import Configuration
 from ...logger.darky_logger import DarkyLogger
-from .response_handler import ResponseHandler
+from ...utils.types.response import ResponseHandler
 from ..exceptions.handler import (
     ResponseHandlerError
 )
@@ -118,11 +118,7 @@ class BASE_EVENT_HANDLER:
                 callback = ResponseHandler(
                     peer_ids=event["object"]["message"]["peer_id"],
                     message=callback,
-                    forward={
-                        "peer_id": event["object"]["message"]["peer_id"],
-                        "conversation_message_ids": event["object"]["message"]["conversation_message_id"],
-                        "is_reply": True
-                    }
+                    reply_to=event["object"]["message"]["id"]
                 )
             if isinstance(callback, ResponseHandler):
                 response = await self.vk_methods.messages.send(**callback.getData())

@@ -3,7 +3,7 @@ from typing import TYPE_CHECKING, AnyStr
 from .framework import FrameworkError
 
 if TYPE_CHECKING:
-    from ..handlers.response_handler import ResponseHandler
+    from ...utils.types.response import ResponseHandler
 
 class HandlerError(FrameworkError):
 

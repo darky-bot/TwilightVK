@@ -63,23 +63,36 @@ def messages_list():
             [{"test": "message"}],
             [],
             []
+        ],
+        "actions": [
+            None,
+            {"type": "chat_invite_user", "member_id": 1234},
+            {"type": "chat_invite_user", "member_id": -123},
+            None,
+            {"type": "chat_invite_user", "member_id": 1234},
+            {"type": "chat_invite_user", "member_id": -123},
+            None,
+            {"type": "chat_invite_user", "member_id": 123},
+            {"type": "chat_invite_user", "member_id": -123},
+            None,
+            {"type": "chat_invite_user", "member_id": 123}
         ]
     }
 
 @pytest.fixture()
 def results():
     return [
-        [True, False, {"triggers": ["test"]}, True, False, False, False, False, False, False, True],
-        [True, False, {"triggers": ["test", "darky"]}, True, {"variable": "darky"}, False, False, True, False, False, True],
-        [True, False, {"triggers": ["test"]}, False, {"variable": "test"}, False, False, False, True, False, True],
-        [True, False, {"triggers": ["test"]}, False, {"variable": "[club123|@club123]"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, False, False, True],
-        [True, False, False, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, True, False, False, True],
-        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, True, False, True],
-        [True, False, {"triggers": ["test"]}, False, {"variable": "[id1234|@id1234]"}, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, False, False, True],
-        [True, False, False, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, True, False, False, True],
-        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, True, False, True],
-        [True, False, {"triggers": ["darky"]}, False, False, False, False, False, False, False, True],
-        [True, False, {"triggers": ["test", "darky"]}, False, {"variable": "[club123|@club123] [id1234|@id1234] darky"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}, {"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, True, True, False, False, True]
+        [True, False, {"triggers": ["test"]}, True, False, False, False, False, False, False, True, False, False],
+        [True, False, {"triggers": ["test", "darky"]}, True, {"variable": "darky"}, False, False, True, False, False, True, True, False],
+        [True, False, {"triggers": ["test"]}, False, {"variable": "test"}, False, False, False, True, False, True, True, True],
+        [True, False, {"triggers": ["test"]}, False, {"variable": "[club123|@club123]"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, False, False, True, False, False],
+        [True, False, False, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, True, False, False, True, True, False],
+        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, True, False, True, True, True],
+        [True, False, {"triggers": ["test"]}, False, {"variable": "[id1234|@id1234]"}, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, False, False, True, False, False],
+        [True, False, False, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, True, False, False, True, True, False],
+        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, True, False, True, True, True],
+        [True, False, {"triggers": ["darky"]}, False, False, False, False, False, False, False, True, False, False],
+        [True, False, {"triggers": ["test", "darky"]}, False, {"variable": "[club123|@club123] [id1234|@id1234] darky"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}, {"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, True, True, False, False, True, True, False]
     ]
 
 @pytest.fixture
@@ -157,7 +170,9 @@ def rules_list():
         ReplyRule(),
         ForwardRule(),
         AdminRule(),
-        IsAdminRule()
+        IsAdminRule(),
+        InvitedRule(),
+        IsInvitedRule()
     ]
     all_rules = []
     for rule in rules_lst:
@@ -173,6 +188,9 @@ async def test_rules(fake_event: dict, messages_list: list, results: list, rules
         if fake_event["object"]["message"]["reply_message"] == None:
             fake_event["object"]["message"].__delitem__("reply_message")
         fake_event["object"]["message"]["fwd_messages"] = messages_list["fwds"][test]
+        fake_event["object"]["message"]["action"] = messages_list["actions"][test]
+        if fake_event["object"]["message"]["action"] == None:
+            fake_event["object"]["message"].__delitem__("action")
         rule_results = [await rule.__check__(fake_event) for rule in rules_list]
         assert rule_results == results[test]
 
@@ -180,10 +198,6 @@ async def test_rules(fake_event: dict, messages_list: list, results: list, rules
 async def test_handlerinput(fake_event: dict, messages_list: list, results: list, rules_list: list[BaseRule], handler_results: list):
     for test in range(len(messages_list["messages"])):
         fake_event["object"]["message"]["text"] = messages_list["messages"][test]
-        fake_event["object"]["message"]["reply_message"] = messages_list["replies"][test]
-        if fake_event["object"]["message"]["reply_message"] == None:
-            fake_event["object"]["message"].__delitem__("reply_message")
-        fake_event["object"]["message"]["fwd_messages"] = messages_list["fwds"][test]
         rule_results = [await rule.__check__(fake_event) for rule in rules_list]
         handler_result = await DEFAULT_HANDLER(MockVkMethods()).__extractArgs__(rule_results)
         assert handler_result == handler_results[test]

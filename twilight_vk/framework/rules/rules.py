@@ -142,12 +142,17 @@ class MentionRule(BaseRule):
         super().__init__(
             need_list = need_list
         )
-
-    async def check(self, event: dict) -> bool | dict:
+    
+    async def __get_mentions__(self, event: dict) -> dict:
         text: str = event["object"]["message"]["text"]
 
         twiml = TwiML()
         result = await twiml.extract_mentions(text)
+
+        return result
+
+    async def check(self, event: dict) -> bool | dict:
+        result = await self.__get_mentions__(event)
 
         if result == {"mentions": []}:
             return False
@@ -157,14 +162,13 @@ class MentionRule(BaseRule):
         
         return True
 
-class IsMentionedRule(BaseRule):
+class IsMentionedRule(MentionRule):
     
     '''
     Проверяет был ли упомянут сам бот или нет
     '''
     async def check(self, event: dict) -> bool:
-        _mentions = MentionRule()
-        mentions = await _mentions.check(event)
+        mentions = await self.__get_mentions__(event)
 
         if mentions != False:
             for mention in mentions["mentions"]:
@@ -203,37 +207,35 @@ class AdminRule(BaseRule):
     Проверяет является ли пользователь отправивший сообщение в беседе его администратором
     Возвращает True/False в зависимости от результата
     '''
-    async def check(self, event: dict) -> bool:
-        chat_members = await self.methods.messages.getConversationMembers(
-            peer_id=event["object"]["message"]["peer_id"]
-        )
-        member: dict
-        for member in chat_members["response"]["items"]:
-            if (
-                member.get("member_id") == event["object"]["message"]["from_id"] and 
-                member.get("is_admin", False)
-            ):
-                return True
-        return False
 
-class IsAdminRule(BaseRule):
+    async def __get_admins__(self, event: dict) -> None:
+        if (
+            event.setdefault("is_admin", None) is None or
+            event.setdefault("is_bot_admin", None) is None
+        ):
+            chat_members = await self.methods.messages.getConversationMembers(
+                peer_id=event["object"]["message"]["peer_id"]
+            )
+            member: dict
+            for member in chat_members["response"]["items"]:
+                if member.get("member_id") == event["object"]["message"]["from_id"]:
+                    event["is_admin"] = member.get("is_admin", False)
+                if member.get("member_id") == -event.get("group_id"):
+                    event["is_bot_admin"] = member.get("is_admin", False)
+
+    async def check(self, event: dict) -> bool:
+        await self.__get_admins__(event)
+        return event.get("is_admin")
+
+class IsAdminRule(AdminRule):
 
     '''
     Проверяет является ли бот администратором в чате
     Возвращает True/False в зависимости от результата
     '''
     async def check(self, event: dict) -> bool:
-        chat_members = await self.methods.messages.getConversationMembers(
-            peer_id=event["object"]["message"]["peer_id"]
-        )
-        member: dict
-        for member in chat_members["response"]["items"]:
-            if (
-                member.get("member_id") == -event.get("group_id") and
-                member.get("is_admin", False)
-            ):
-                return True
-        return False
+        await self.__get_admins__(event)
+        return event.get("is_bot_admin")
 
 
 class InvitedRule(BaseRule):
@@ -241,13 +243,25 @@ class InvitedRule(BaseRule):
     '''
     Возвращает True если какой-либо пользователь был добавлен в чат.
     '''
+    async def __who_is_invited__(self, event: dict) -> int:
+        if (
+            event["object"]["message"].get("action", None) is not None and
+            event["object"]["message"]["action"]["type"] == "chat_invite_user"
+        ):
+            return event["object"]["message"]["action"]["member_id"]
+        return 0
+
     async def check(self, event: dict) -> bool:
-        pass
+        if await self.__who_is_invited__(event) != 0:
+            return True
+        return False 
     
-class IsInvitedRule(BaseRule):
+class IsInvitedRule(InvitedRule):
 
     '''
     Возвращает True если бот был добавлен в чат
     '''
     async def check(self, event: dict) -> bool:
-        pass
+        if await self.__who_is_invited__(event) == -event.get("group_id"):
+            return True
+        return False

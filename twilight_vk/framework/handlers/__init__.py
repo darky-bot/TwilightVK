@@ -6,7 +6,7 @@ from .event_handlers import (
     MESSAGE_NEW,
     MESSAGE_REPLY
 )
-from .response_handler import ResponseHandler
+from ...utils.types.response import ResponseHandler
 from ...utils.event_types import BotEventType
 
 if TYPE_CHECKING:
