@@ -1,5 +1,6 @@
 from .base import BaseRule
 from ...utils.twiml import TwiML
+from ...utils.types.event_types import MessageActionTypes
 
 class TrueRule(BaseRule):
 
@@ -246,7 +247,7 @@ class InvitedRule(BaseRule):
     async def __who_is_invited__(self, event: dict) -> int:
         if (
             event["object"]["message"].get("action", None) is not None and
-            event["object"]["message"]["action"]["type"] == "chat_invite_user"
+            event["object"]["message"]["action"]["type"] == MessageActionTypes.CHAT_INVITE_USER
         ):
             return event["object"]["message"]["action"]["member_id"]
         return 0
