@@ -44,7 +44,7 @@ class VkBaseMethods:
             response = await self.httpValidator.validate(response)
             response = await self.eventValidator.validate(response)
 
-        self.logger.debug(f"Response for {api_method}: {response}")
+        self.logger.debug(f"Response for {api_method}: {response if isinstance(response, dict) else f"{response.request_info} <{response.status}>"}")
         return response
         
     async def base_post_method(
@@ -70,7 +70,7 @@ class VkBaseMethods:
             response = await self.httpValidator.validate(response)
             response = await self.eventValidator.validate(response)
 
-        self.logger.debug(f"Response for {api_method}: {response}")
+        self.logger.debug(f"Response for {api_method}: {response if isinstance(response, dict) else f"{response.request_info} <{response.status}>"}")
         return response
     
     async def close(self):

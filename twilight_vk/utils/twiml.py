@@ -2,7 +2,13 @@ import re
 
 class TwiML:
 
-    def __init__(self, template:str=None):
+    def __init__(self, template: str=None):
+        '''
+        Twilight Markup Language for extracting args and mentions from message text
+
+        :param template: Regex template for parsing
+        :type template: str
+        '''
         self.template = template
         self.placeholder_types = {
             "any": (r".+", str),
@@ -10,24 +16,32 @@ class TwiML:
             "word": (r"\S+", str)
         }
 
-    def update_template(self, template:str):
+    def update_template(self, template: str):
+        '''
+        Updates the template for parsing
+        '''
         self.template = template
-    
-    def parse(self,
-              message:str) -> dict:
+
+    async def parse(self,
+                    message: str) -> dict:
+        '''
+        Parsing message for variable values.
         
+        :param message: Message text
+        :type message: str
+        '''
+        args = {}
         pattern = re.escape(self.template)
         placeholders = re.findall(r"<(\w+)(?::(\w+))?>", self.template)
-        args = {}
-        
-        for name, placeholder_type in placeholders:
-            type_ = placeholder_type or "any"
-            regex, convert = self.placeholder_types.get(type_)
-            pattern = pattern.replace(
-                re.escape(f"<{name}{':' + type_ if placeholder_type else ''}>"), f"({regex})"
-            )
-            args[name] = convert
 
+        for name, type in placeholders:
+            _type = type or "any"
+            _regex, _convert_to = self.placeholder_types.get(_type)
+            pattern = pattern.replace(
+                re.escape(f"<{name}{":" + _type if type else ""}>"), f"({_regex})"
+            )
+            args[name] = _convert_to
+        
         match = re.match(pattern, message)
         if not match:
             return None
@@ -35,4 +49,26 @@ class TwiML:
         result = {}
         for (name, _), value in zip(placeholders, match.groups()):
             result[name] = args[name](value)
+        return result
+    
+    async def extract_mentions(self,
+                               message: str) -> dict:
+        '''
+        Extracts the mentions from message
+
+        :param message: Message text
+        :type message: str
+        '''
+        pattern = r"\[([a-zA-Z]+)(\d+)\|([^\]]*)\]"
+        mentions = re.findall(pattern, message)
+
+        result = {
+            "mentions": [{
+                "type": mention[0],
+                "id": int(mention[1]),
+                "screen_name": f"{mention[0]}{mention[1]}",
+                "text": mention[2]
+            } for mention in mentions]
+        }
+
         return result

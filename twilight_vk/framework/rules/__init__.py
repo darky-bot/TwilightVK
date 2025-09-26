@@ -1,5 +1,16 @@
 from .rules import (
+    FalseRule,
+    TrueRule,
+    ContainsRule,
     TextRule,
-    TwiMLRule
+    TwiMLRule,
+    MentionRule,
+    IsMentionedRule,
+    ReplyRule,
+    ForwardRule,
+    AdminRule,
+    IsAdminRule,
+    InvitedRule,
+    IsInvitedRule
 )
 from .base import BaseRule

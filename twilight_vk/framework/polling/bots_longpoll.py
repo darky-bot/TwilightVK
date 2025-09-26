@@ -1,4 +1,5 @@
 from aiohttp.client_exceptions import ClientConnectorDNSError
+from aiohttp import ClientResponse
 
 from .base_longpoll import BaseLongPoll
 from ..exceptions.vkapi import (
@@ -9,7 +10,7 @@ from ..exceptions.vkapi import (
 from ...utils.config_loader import Configuration
 from ..methods.base import VkBaseMethods
 from ..methods import VkMethods
-from ..handlers.events import EventHandler
+from ..handlers import EventHandler
 from ...logger.darky_logger import DarkyLogger
 from ..validators.http_validator import HttpValidator
 from ..validators.event_validator import EventValidator
@@ -97,7 +98,6 @@ class BotsLongPoll(BaseLongPoll):
         Getting the event from BotsLongPoll server
         '''
         try:
-            self.wait_for_response=True
             self.logger.debug(f"Listening the BotsLongPoll server for events...")
             response = await self.httpClient.get(url=f"{self.__server__}",
                                             params={
@@ -123,7 +123,7 @@ class BotsLongPoll(BaseLongPoll):
                 case 1:
                     self.logger.warning(f"The event history is outdated or has been partially lost. "\
                                         f"The application can receive events further using the new \"ts\" value from the response.")
-                    self.__ts__ = await response.json()["ts"]
+                    self.__ts__ = ex.new_ts
                 case 2:
                     self.logger.warning(f"The key is expired. Getting new one...")
                     await self.auth(update_ts=False)
@@ -131,7 +131,8 @@ class BotsLongPoll(BaseLongPoll):
                     self.logger.error(f"The information is lost. Reauthorizing...")
                     await self.auth()
             self.logger.debug(f"Retrying to get event...")
-            return await self.check_event()
+            if not self.__stop__:
+                return await self.check_event()
         except VkApiError as ex:
             self.logger.critical("Request to VK API was handled with error", exc_info=True)
             self.stop()

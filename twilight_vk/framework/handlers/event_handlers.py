@@ -5,9 +5,7 @@ import asyncio
 
 from ...utils.config_loader import Configuration
 from ...logger.darky_logger import DarkyLogger
-from ..validators.event_validator import EventValidator
-from ..validators.http_validator import HttpValidator
-from .response import ResponseHandler
+from ...utils.types.response import ResponseHandler
 from ..exceptions.handler import (
     ResponseHandlerError
 )
@@ -35,7 +33,7 @@ class BASE_EVENT_HANDLER:
 
         self.vk_methods = vk_methods
 
-        self.__funcs__: List[Callable] = []
+        self.__funcs__: List[dict[list[BaseRule], Callable]] = []
     
     def __add__(self, 
                 func, 
@@ -58,14 +56,10 @@ class BASE_EVENT_HANDLER:
         '''
         Checking rule result for current function and event
         '''
-        self.logger.debug(f"Checking rule {rule.__class__.__name__}({rule.__dict__})...")
+        if not hasattr(rule, "methods") or rule.methods is None:
+            await rule.__linkVkMethods__(self.vk_methods)
 
-        await rule.__updateEvent__(event)
-        result = await rule.check()
-
-        self.logger.debug(f"Rule {rule.__class__.__name__} returned the {result}")
-        
-        await rule.__earseEvent__()
+        result = await rule.__check__(event)
 
         return result
 
@@ -76,7 +70,7 @@ class BASE_EVENT_HANDLER:
         self.logger.debug(f"Checking rules for {func.__name__} from {self.__class__.__name__}...")
         rule_results = await asyncio.gather(
             *(self.__checkRule__(rule, event) for rule in handler["rules"]),
-            return_exceptions=True
+            return_exceptions=False
         )
         self.logger.debug(f"Rules check results: {rule_results}")
         self.logger.debug(f"{func.__name__}'s rules was checked")
@@ -124,18 +118,14 @@ class BASE_EVENT_HANDLER:
                 callback = ResponseHandler(
                     peer_ids=event["object"]["message"]["peer_id"],
                     message=callback,
-                    forward={
-                        "peer_id": event["object"]["message"]["peer_id"],
-                        "conversation_message_ids": event["object"]["message"]["conversation_message_id"],
-                        "is_reply": True
-                    }
+                    reply_to=event["object"]["message"]["id"]
                 )
             if isinstance(callback, ResponseHandler):
                 response = await self.vk_methods.messages.send(**callback.getData())
                 return response
             if isinstance(callback, None):
                 return True
-        raise ResponseHandlerError(callback)
+        raise ResponseHandlerError(callback, isinstance(callback, ResponseHandler | None))
         
     async def __callFunc__(self, handler:dict, event:dict):
         '''

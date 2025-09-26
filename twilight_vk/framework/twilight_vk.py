@@ -41,7 +41,7 @@ class TwilightVK:
         self.logo = LogoComponent()
         self.logger = DarkyLogger(logger_name=f"twilight-vk", configuration=CONFIG.LOGGER)
 
-        self.logger.debug(f"Initializing framework...")
+        self.logger.info(f"Initializing framework...")
 
         self.started = False
 
@@ -98,7 +98,7 @@ class TwilightVK:
                                 self.logger.error(f"Event handling error {event}: {result}")
                                 raise result
                 except Exception as ex:
-                    self.logger.error(f"{ex.__class__.__name__}: {ex}")
+                    self.logger.error(f"{ex.__class__.__name__}: {ex}", exc_info=True)
 
             async for event_response in self.__bot__.listen():
                 if self.started:
@@ -140,7 +140,7 @@ class TwilightVK:
                 for task_result in tasks_results:
                     try:
                         task_result.result()
-                    except Exception as exc:  # noqa: PERF203
+                    except Exception as exc:
                         self.logger.critical(exc)
                 tasks = asyncio.all_tasks(self.__loop__)
 
@@ -170,6 +170,8 @@ class TwilightVK:
             self.should_stop()
 
             if force:
+
+                self.logger.warning(f"Forced stop. For soft stop - use TwilightVK.should_stop() method")
 
                 if not tasks:
                     tasks = asyncio.all_tasks(self.__loop__)

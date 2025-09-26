@@ -60,7 +60,7 @@ class EventValidator:
                     raise VkApiError(error_code, error_msg, request_params)
                 if field == "failed":
                     failed_code = content[field]
-                    raise LongPollError(failed_code)
+                    raise LongPollError(failed_code, content["ts"] if "ts" in content else None)
                 return True
         else:
             return False

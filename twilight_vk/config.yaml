@@ -36,10 +36,10 @@ JSON_LOGGER:
       class: "logging.handlers.RotatingFileHandler"
       formatter: "file"
       filename: "twilight.log"
-      backupCount: 1
+      backupCount: 3
       encoding: "utf-8"
     console:
-      level: INFO
+      level: INIT
       class: "logging.StreamHandler"
       formatter: "console"
     uvicorn_access_console:
@@ -72,6 +72,10 @@ JSON_LOGGER:
       level: INIT
       propagate: True
     event-handler:
+      handlers: ["console", "file"]
+      level: INIT
+      propagate: True
+    rule-handler:
       handlers: ["console", "file"]
       level: INIT
       propagate: True
