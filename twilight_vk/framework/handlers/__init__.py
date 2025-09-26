@@ -7,7 +7,7 @@ from .event_handlers import (
     MESSAGE_REPLY
 )
 from ...utils.types.response import ResponseHandler
-from ...utils.event_types import BotEventType
+from ...utils.types.event_types import BotEventType
 
 if TYPE_CHECKING:
     from ..methods import VkMethods
