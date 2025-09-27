@@ -45,8 +45,12 @@ class TwilightVK:
 
         self.started = False
 
-        if not ACCESS_TOKEN or not GROUP_ID:
-            raise InitializationError(ACCESS_TOKEN, GROUP_ID)
+        try:
+            if not ACCESS_TOKEN or not GROUP_ID:
+                raise InitializationError(ACCESS_TOKEN, GROUP_ID)
+        except InitializationError as ex:
+            self.logger.critical(f"Initialization error{ex}")
+            exit()
 
         self.__access_token__ = ACCESS_TOKEN
         self.__group_id__ = GROUP_ID
@@ -75,7 +79,8 @@ class TwilightVK:
             self.logger.info(f"Starting the framework...")
             self.started = True
             await self.__bot__.auth()
-            self.logger.info(f"{FG.BLUE}Framework is started{STYLE.RESET}")
+            if self.__bot__.__server__ is not None:
+                self.logger.info(f"{FG.GREEN}Framework is started{STYLE.RESET}")
 
             #async for event_response in self.__bot__.listen():
             #    for event in event_response["updates"]:
