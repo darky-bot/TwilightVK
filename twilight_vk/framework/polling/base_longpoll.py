@@ -39,7 +39,8 @@ class BaseLongPoll:
             self.logger.debug(f"Polling was stopped")
             self.__stop__ = True
     
-    def stop(self):
+    def stop(self, _from="Polling"):
         if self.__stop__ == False:
-            self.logger.info(f"Polling will be stopped as soon as the current request will be done. Please wait")
+            if _from == "Polling":
+                self.logger.info(f"Polling will be stopped as soon as the current request will be done. Please wait")
             self.__stop__ = True

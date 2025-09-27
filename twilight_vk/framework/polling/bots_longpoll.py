@@ -83,13 +83,13 @@ class BotsLongPoll(BaseLongPoll):
 
         except ClientConnectorDNSError as ex:
             self.logger.critical(f"{ex}", exc_info=True)
-            self.stop()
+            self.stop(_from="Authorization")
         except AuthError as ex:
             self.logger.error(f"Authrization error: {ex}")
-            self.stop()
+            self.stop(_from="Authorization")
         except VkApiError as ex:
             self.logger.critical("Request to VK API was handled with error", exc_info=True)
-            self.stop()
+            self.stop(_from="Authorization")
 
     
     async def check_event(self) -> dict:

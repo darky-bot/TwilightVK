@@ -31,6 +31,6 @@ class InitializationError(FrameworkError):
         self.__groupId__ = group_id
     
     def __str__(self):
-        return f"One of the requirement parameters is None! " \
-        f"{": ACCESS_TOKEN is None) " if self.__accessToken__ is None else ""}"\
-        f"{": GROUP_ID is None " if self.__groupId__ is None else ""}"
+        return \
+        f"{f" : ACCESS_TOKEN is None or empty" if not self.__accessToken__ else ""}"\
+        f"{f" : GROUP_ID is None or empty" if not self.__groupId__ else ""}"
