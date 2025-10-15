@@ -8,7 +8,7 @@ from .framework import (
     rules
 )
 
-from .api.twilight_api import TwilightAPI
+from .TwilightAPI.twilight_api.twilight_api import TwilightAPI
 
 from .utils.config_loader import Configuration
 

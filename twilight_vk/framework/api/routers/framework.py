@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 
 from fastapi import APIRouter
 
-from ....api.routers import BaseRouter
 from ....logger.darky_logger import DarkyLogger
 from ....utils.config_loader import Configuration
 
