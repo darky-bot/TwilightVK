@@ -2,14 +2,6 @@ framework:
   version: "0.1.0-beta"
   developer: "darky_wings"
 
-api:
-  host: 0.0.0.0
-  port: 8000
-  title: Twilight API Swagger
-  description: Welcome to the Twilight API Swagger!
-  version: 0.0.1
-  prefix: /api/v1
-
 vk_api:
   url: "https://api.vk.ru"
   version: "5.199"
@@ -48,10 +40,6 @@ JSON_LOGGER:
       class: "logging.StreamHandler"
       formatter: "uvicorn_access_console"
   loggers:
-    twilight-api:
-      handlers: ["console", "file"]
-      level: INIT
-      propagate: True
     twi-api-fw:
       handlers: ["console", "file"]
       level: INIT
@@ -83,12 +71,4 @@ JSON_LOGGER:
     rule-handler:
       handlers: ["console", "file"]
       level: INIT
-      propagate: True
-    uvicorn.access:
-      handlers: ["uvicorn_access_console"]
-      level: INIT
-      propagate: True
-    uvicorn.error:
-      handlers: ["console", "file"]
-      level: WARNING
       propagate: True
