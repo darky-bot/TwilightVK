@@ -1,24 +1,21 @@
-## Начало
+![TwilightLogo](/docs/SVG/logo-background.svg)
+<p align="center" style="font-size: 24px; color: #F48; font-weight: bolder; font-style: italic; font-family: Sans-serif">
+    Работа с TWILIGHT VK
+</p>
 
-### Импорт библиотеки
+В данной статье будут показаны основы работы с TwilightVK, такие как инициализация бота, его запуск и остановка, а также будет рассмотрен простой пример с реализацией echo-бота.
 
-Как и любой другой фреймворк для начала работы вам необходимо его импортировать
-```python
-import twilight_vk
-```
-
-### Инициализация бота
-
-Инициализация происходит путем создания экземпляра класса TwilightVK с передачей следующих параметров:
+### Создание бота
+Создать бота можно создав экземпляр класса TwilightVK с передачей следующих параметров:
 + `BOT_NAME`
-  >Имя бота - необходим для идентификации в API Swagger при использовании TwilightAPI
+  >Имя бота - необходим для идентификации в API Swagger при использовании  TwilightAPI. Старайтесь при этом не использовать символы такие как: ",", ".", ";", "+", и др.
   >По умолчанию: `"TwilightVK"`
 + `ACCESS_TOKEN`*
   >Токен вашего сообщества/приложения
 + `GROUP_ID`*
   >ID вашей группы в случае с сообществами
 + `API_VERSION`
-+ >Версия VK API
+  >Версия VK API
   >По умолчанию: `"5.199"`
 + `API_MODE`
   >Режим работы фреймворка
@@ -26,7 +23,11 @@ import twilight_vk
   >+ `"BOTSLONGPOLL"` - Для работы с событиями сообщества
   >+ `"USERLONGPOLL"`(В разработке!) - Для работы с событиями пользователя
   >+ `"CALLBACK"`(В разработке!) - Для отслеживания активности пользователей в сообществе
+
+Пример создания бота с названием `TestBot`:
 ```python
+import twilight_vk
+
 bot = twilight_vk.TwilightVK(
     BOT_NAME="TestBot",
     ACCESS_TOKEN="YourTokenHere",
@@ -35,8 +36,9 @@ bot = twilight_vk.TwilightVK(
 ```
 
 ### Запуск бота
-В текущем виде бот уже готов работать и принимать события. Запускается бот простой командой `start()`
+В текущем виде бот уже готов работать и принимать события. Запускается бот методом `start()` в нашем экземпляре класса TwilightVK.
 ```python
+bot = twilight_vk.TwilightVK(...)
 bot.start()
 ```
 
@@ -57,6 +59,7 @@ bot.start()
 async def echo(event: dict):
     return event["object"]["message"]["text"]
 ```
+> + Привязка функций к обработчикам должна происходить **до** запуска бота (**до** использования метода `TwilightVK.start()`)
 > + Функции, которые будут привязаны к обработчикам должны быть асинхронными
 > + `event: dict` всегда должен приниматься первым в параметрах функции, поскольку через него передаётся произошедшее событие. Наличие дополнительных параметров зависит от использования правил в обработчиках (см. "Фильтрация событий", "Правила")
 
@@ -69,7 +72,7 @@ async def echo(event: dict):
 + Через TwilightAPI (Hard/Soft Shutdown)
 > Hard Shutdown подразумевает немедленную остановку бота без ожидания завершения работы всех обработчиков
 
-##### KeyboardInterrupt
+#### KeyboardInterrupt
 При данном виде завершения работы фреймворк выдаст пару предупреждений, что прослушивание событий и их обработка была завершена досрочно и немедленно завершит свою работу
 ```
 twilight-vk   | WARNING   | KeyboardInterrupt recieved, shutting down...
@@ -77,14 +80,14 @@ twilight-vk   | WARNING   | Forced stop. For soft stop - use TwilightVK.should_s
 botslongpoll  | WARNING   | Listening was forcibly canceled (it is not recommend to do this)
 ```
 
-##### Soft Shutdown
+#### Soft Shutdown
 Фреймворк позволяет завершить работу мягко, через использование специального метода `should_stop()`
 
 Для того чтобы завершить работу необходимо просто прописать строчку `bot.should_stop()` там, где необходимо будет завершить его работу
 > Пример:
 > ```python
 > @bot.on_event.message_new(TextRule=["stop"])
-> async def stop_command(event: dict):
+> async def stop(event: dict):
 >     bot.should_stop()
 >     return "Бот скоро завершит свою работу"
 > ```
@@ -92,8 +95,8 @@ botslongpoll  | WARNING   | Listening was forcibly canceled (it is not recommend
 Данная функция не завершает работу, а лишь даёт понять фреймворку что пора закругляться.
 Как только все обработчики и события на момент вызова метода будут обработаны - фреймворк завершит свою работу.
 
-##### TwilightAPI
-Модуль `TwilightAPI` и каждый привязанный к нему бот, содержат методы `/stop` через которые можно отправить сигналы завершения работы
+#### TwilightAPI
+Модуль `TwilightAPI` и каждый привязанный к нему бот, содержат методы API `/stop`, через которые можно отправить сигналы завершения работы
 
 Достаточно отправить `HTTP-GET` запрос по адресу метода и фреймворк завершит свою работу
 Пример запроса который завершает работу бота с названием `SimpleBot` (указывается в `BOT_NAME` в классе `TwilightVK`):
@@ -103,9 +106,31 @@ curl http://localhost:8000/api/v1/SimpleBot/stop/
 
 > + `/stop` принимает один единственный параметр `force`, который должен быть равен `True` или `False` в зависимости от того какой тип завершения работы нам нужен.
 > + `/stop` в роутере API от TwilightVK() завершит работу конкретно этого бота
-> + `/stop` в роутере API от TwilightAPI() завершит работу всех привязанных к нему ботов 
+> + `/stop` в роутере API от TwilightAPI() завершит работу всех привязанных к нему ботов
+
+### Итог
+В данной статье были рассмотрены основные принципы работы фреймворка, такие как: Инициализация, запуск, остановка и создание простейших функций.
+
+Итоговый код бота выглядит таким образом:
+```python
+import twilight_vk
+from twilight_vk.framework.rules import TextRule
+
+bot = twilight_vk.TwilightVK(...)
+
+@bot.on_event.message_new()
+async def echo(event: dict):
+    return event["object"]["message"]["text"]
+  
+@bot.on_event.message_new(TextRule(value=["stop"]))
+async def stop(event: dict):
+    bot.should_stop()
+    return "Бот скоро завершит свою работу"
+
+bot.start()
+```
 
 См. также
-+ [Использование обработчиков событий]()
++ [Использование обработчиков событий](/docs/how-to-use-handlers.md)
 
 [Содержание](/docs/content.md)

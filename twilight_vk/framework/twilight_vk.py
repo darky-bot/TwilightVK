@@ -1,6 +1,10 @@
+import re
 import asyncio
 import contextlib
 
+from fastapi import APIRouter
+
+from .api import FrameworkRouter
 from .polling.bots_longpoll import BotsLongPoll
 from ..logger.darky_logger import DarkyLogger
 from ..logger.darky_visual import STYLE, FG
@@ -15,7 +19,7 @@ CONFIG = Configuration().get_config()
 class TwilightVK:
 
     def __init__(self,
-                 BOT_NAME: str = __name__,
+                 BOT_NAME: str = None,
                  ACCESS_TOKEN: str = None, 
                  GROUP_ID: int = None, 
                  API_VERSION: str = CONFIG.vk_api.version,
@@ -38,6 +42,7 @@ class TwilightVK:
         :param API_MODE: mode of polling (BOTSLONGPOLL/.../...)
         :type API_MODE: str
         '''
+        self.bot_name = self.__class__.__name__ if BOT_NAME is None else BOT_NAME
         self.logo = LogoComponent()
         self.logger = DarkyLogger(logger_name=f"twilight-vk", configuration=CONFIG.LOGGER)
 
@@ -55,6 +60,8 @@ class TwilightVK:
         self.__access_token__ = ACCESS_TOKEN
         self.__group_id__ = GROUP_ID
         self.__api_version__ = API_VERSION
+
+        self.api_router = FrameworkRouter(self)
 
         self.__tasks__ = []
 
@@ -80,7 +87,7 @@ class TwilightVK:
             self.started = True
             await self.__bot__.auth()
             if self.__bot__.__server__ is not None:
-                self.logger.info(f"{FG.GREEN}Framework is started{STYLE.RESET}")
+                self.logger.info(f"{FG.BLUE}Framework is started{STYLE.RESET}")
 
             #async for event_response in self.__bot__.listen():
             #    for event in event_response["updates"]:
@@ -151,9 +158,7 @@ class TwilightVK:
 
         except KeyboardInterrupt:
             self.logger.warning(f"KeyboardInterrupt recieved, shutting down...")
-            tasks_to_cancel = self.stop(force=True, tasks=tasks)
-            with contextlib.suppress(asyncio.CancelledError):
-                self.__loop__.run_until_complete(tasks_to_cancel)
+            self.stop(force=True, tasks=tasks)
         finally:
             self.__loop__.run_until_complete(self.__loop__.shutdown_asyncgens())
             if self.__loop__.is_running():
@@ -183,7 +188,8 @@ class TwilightVK:
                     
                 tasks_to_cancel = asyncio.gather(*tasks)
                 tasks_to_cancel.cancel()
-                return tasks_to_cancel
+                with contextlib.suppress(asyncio.CancelledError):
+                    self.__loop__.run_until_complete(tasks_to_cancel)
     
     def should_stop(self):
         '''
@@ -196,4 +202,4 @@ class TwilightVK:
             self.logger.warning("Framework is already stopping")
 
     def __getApiRouters__(self):
-        pass
+        return self.api_router.get_router()

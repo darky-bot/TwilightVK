@@ -3,11 +3,12 @@ framework:
   developer: "darky_wings"
 
 api:
-  host: 127.0.0.1
-  port: 8080
+  host: 0.0.0.0
+  port: 8000
   title: Twilight API Swagger
   description: Welcome to the Twilight API Swagger!
   version: 0.0.1
+  prefix: /api/v1
 
 vk_api:
   url: "https://api.vk.ru"
@@ -48,6 +49,10 @@ JSON_LOGGER:
       formatter: "uvicorn_access_console"
   loggers:
     twilight-api:
+      handlers: ["console", "file"]
+      level: INIT
+      propagate: True
+    twi-api-fw:
       handlers: ["console", "file"]
       level: INIT
       propagate: True
