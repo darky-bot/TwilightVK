@@ -1,6 +1,6 @@
 from aiohttp import ClientResponse
 
-from ...utils.config_loader import Configuration
+from ...utils.config import CONFIG
 from ...logger.darky_logger import DarkyLogger
 from ..exceptions.validator import (
     EventValidationError
@@ -10,8 +10,6 @@ from ..exceptions.vkapi import (
     AuthError,
     LongPollError
 )
-
-CONFIG = Configuration().get_config()
 
 class EventValidator:
 

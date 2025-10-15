@@ -1,7 +1,5 @@
 from ..logger.darky_visual import STYLE, FG, BG
-from ..utils.config_loader import Configuration
-
-CONFIG = Configuration().get_config()
+from ..utils.config import CONFIG
 
 class LogoComponent:
 
@@ -26,7 +24,7 @@ class LogoComponent:
             "/_/   |__/|__/_/_/_/\\__, /_/ /_/\\__/  ",
             "                   /____/             "
         ]
-        self._simplified_meta = f"VERSION: {CONFIG.framework.version}\ndeveloped by {CONFIG.framework.developer}"
+        self._simplified_meta = f"VERSION: {CONFIG.FRAMEWORK.version}\ndeveloped by {CONFIG.FRAMEWORK.developer}"
 
         self._logo = [
             "",
@@ -38,8 +36,8 @@ class LogoComponent:
             " #+#        #+#+# #+#+#        #+#       #+#              #+#       #+#    #+#   #+#    #+#       #+#         ",
             "###         ###   ###     ###########   ##########   ###########    ########    ###    ###       ###          "
         ]
-        self._beginmeta = f"██VERSION: {CONFIG.framework.version}"
-        self._endmeta = f"developed by {CONFIG.framework.developer}██"
+        self._beginmeta = f"██VERSION: {CONFIG.FRAMEWORK.version}"
+        self._endmeta = f"developed by {CONFIG.FRAMEWORK.developer}██"
         self._meta = f"{self._beginmeta}{"█"*(len(self._logo[-1])-len(self._beginmeta)-len(self._endmeta))}{self._endmeta}"
 
         self._colored_logo = FG.GRADIENT(self._logo, ["#44F", "#D0F"])

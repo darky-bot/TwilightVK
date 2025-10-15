@@ -8,7 +8,7 @@ from .framework import (
     rules
 )
 
-from .utils.config_loader import Configuration
+from .utils.config import CONFIG
 
 from .logger.darky_logger import DarkyLogger
 from .logger.darky_visual import (

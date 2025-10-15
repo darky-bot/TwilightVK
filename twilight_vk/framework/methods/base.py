@@ -2,11 +2,9 @@ from aiohttp import ClientResponse
 
 from ...http.async_http import Http
 from ...logger.darky_logger import DarkyLogger
-from ...utils.config_loader import Configuration
+from ...utils.config import CONFIG
 from ..validators.http_validator import HttpValidator
 from ..validators.event_validator import EventValidator
-
-CONFIG = Configuration().get_config()
 
 class VkBaseMethods:
 
@@ -85,7 +83,7 @@ class BaseMethodsGroup:
                  logger:DarkyLogger):
         self.__access_token__ = baseMethods.__token__
         self.__group_id__ = baseMethods.__group__
-        self.__api_version__ = CONFIG.vk_api.version
+        self.__api_version__ = CONFIG.VK_API.version
         self.base_api = baseMethods
         self.__class_name__ = self.__class__.__name__
         self.logger = logger

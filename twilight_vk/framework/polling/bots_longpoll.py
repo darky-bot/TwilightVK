@@ -7,7 +7,7 @@ from ..exceptions.vkapi import (
     VkApiError,
     LongPollError
 )
-from ...utils.config_loader import Configuration
+from ...utils.config import CONFIG
 from ..methods.base import VkBaseMethods
 from ..methods import VkMethods
 from ..handlers import EventHandler
@@ -16,14 +16,12 @@ from ..validators.http_validator import HttpValidator
 from ..validators.event_validator import EventValidator
 from ...http.async_http import Http
 
-CONFIG = Configuration().get_config()
-
 class BotsLongPoll(BaseLongPoll):
 
     def __init__(self,
                  access_token:str=None,
                  group_id:int=None,
-                 api_version:str=CONFIG.vk_api.version) -> None:
+                 api_version:str=CONFIG.VK_API.version) -> None:
         '''
         BotLongPoll provides a communication between your app and VK API
         Bots Long Poll API allows you to process community events in real time
@@ -45,12 +43,12 @@ class BotsLongPoll(BaseLongPoll):
         self.logger = DarkyLogger(self.__class__.__name__.lower(), configuration=CONFIG.LOGGER)
         self.__access_token__ = access_token
         self.__group_id__ = group_id
-        self.__api_url__ = CONFIG.vk_api.url
+        self.__api_url__ = CONFIG.VK_API.url
         self.__api_version__ = api_version
         self.__server__ = None
         self.__key__ = None
         self.__ts__ = None
-        self.__wait__ = CONFIG.vk_api.wait
+        self.__wait__ = CONFIG.VK_API.wait
         self.base_methods = VkBaseMethods(self.__api_url__, self.__access_token__, self.__group_id__)
         self.vk_methods = VkMethods(self.base_methods)
         self.event_handler = EventHandler(self.vk_methods)

@@ -2,9 +2,7 @@ from typing import TYPE_CHECKING
 from typing import Any
 
 from ...logger.darky_logger import DarkyLogger
-from ...utils.config_loader import Configuration
-
-CONFIG = Configuration().get_config()
+from ...utils.config import CONFIG
 
 if TYPE_CHECKING:
     from ..methods import VkMethods

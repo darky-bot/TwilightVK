@@ -9,12 +9,10 @@ from .polling.bots_longpoll import BotsLongPoll
 from ..logger.darky_logger import DarkyLogger
 from ..logger.darky_visual import STYLE, FG
 from ..components.logo import LogoComponent
-from ..utils.config_loader import Configuration
+from ..utils.config import CONFIG
 from .exceptions.framework import (
     InitializationError
 )
-
-CONFIG = Configuration().get_config()
 
 class TwilightVK:
 
@@ -22,7 +20,7 @@ class TwilightVK:
                  BOT_NAME: str = None,
                  ACCESS_TOKEN: str = None, 
                  GROUP_ID: int = None, 
-                 API_VERSION: str = CONFIG.vk_api.version,
+                 API_VERSION: str = CONFIG.VK_API.version,
                  API_MODE: str = "BOTSLONGPOLL") -> None:
         '''
         Initializes TwilightVK

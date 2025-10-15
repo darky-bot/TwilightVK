@@ -4,9 +4,7 @@ from typing import TYPE_CHECKING
 from fastapi import APIRouter
 
 from ....logger.darky_logger import DarkyLogger
-from ....utils.config_loader import Configuration
-
-CONFIG = Configuration().get_config()
+from ....utils.config import CONFIG
 
 if TYPE_CHECKING:
     from ...twilight_vk import TwilightVK

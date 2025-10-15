@@ -3,7 +3,7 @@ from typing import List, Callable
 
 import asyncio
 
-from ...utils.config_loader import Configuration
+from ...utils.config import CONFIG
 from ...logger.darky_logger import DarkyLogger
 from ...utils.types.response import ResponseHandler
 from ..exceptions.handler import (
@@ -13,8 +13,6 @@ from ..rules import *
 
 if TYPE_CHECKING:
     from ..methods import VkMethods
-
-CONFIG = Configuration().get_config()
 
 class BASE_EVENT_HANDLER:
 

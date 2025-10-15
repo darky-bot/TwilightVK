@@ -1,11 +1,9 @@
 from aiohttp import ClientResponse
 from http import HTTPStatus
 
-from ...utils.config_loader import Configuration
+from ...utils.config import CONFIG
 from ...logger.darky_logger import DarkyLogger
 from ..exceptions.validator import HttpValidationError
-
-CONFIG = Configuration().get_config()
 
 class HttpValidator:
 
