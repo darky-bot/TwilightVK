@@ -8,8 +8,6 @@ from .framework import (
     rules
 )
 
-from .TwilightAPI.twilight_api.twilight_api import TwilightAPI
-
 from .utils.config_loader import Configuration
 
 from .logger.darky_logger import DarkyLogger
