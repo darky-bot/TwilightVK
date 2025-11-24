@@ -4,12 +4,15 @@ import contextlib
 
 from fastapi import APIRouter
 
+from ..api.twilight_api import TwilightAPI
 from .api import FrameworkRouter
 from .polling.bots_longpoll import BotsLongPoll
 from ..logger.darky_logger import DarkyLogger
 from ..logger.darky_visual import STYLE, FG
 from ..components.logo import LogoComponent
 from ..utils.config import CONFIG
+from ..utils.types.twi_states import TwiVKStates
+from ..utils.event_loop import TwiTaskManager
 from .exceptions.framework import (
     InitializationError
 )
@@ -21,7 +24,11 @@ class TwilightVK:
                  ACCESS_TOKEN: str = None, 
                  GROUP_ID: int = None, 
                  API_VERSION: str = CONFIG.VK_API.version,
-                 API_MODE: str = "BOTSLONGPOLL") -> None:
+                 API_MODE: str = "BOTSLONGPOLL",
+                 TWI_API_ENABLED: bool = True,
+                 HOST: str = CONFIG.API.host,
+                 PORT: str = CONFIG.API.port,
+                 loop_wrapper: TwiTaskManager = None) -> None:
         '''
         Initializes TwilightVK
 
@@ -39,14 +46,19 @@ class TwilightVK:
 
         :param API_MODE: mode of polling (BOTSLONGPOLL/.../...)
         :type API_MODE: str
+
+        :param TWI_API_ENABLED: should be bot's api awailable
+        :type TWI_API_ENABLED: bool
+
+        :param loop_wrapper: Initialized class TwiTaskManager for async loop wrapping
+        :type loop_wrapper: TwiTaskManager
         '''
+        self._state = TwiVKStates.INITIALIZING
         self.bot_name = self.__class__.__name__ if BOT_NAME is None else BOT_NAME
         self.logo = LogoComponent()
         self.logger = DarkyLogger(logger_name=f"twilight-vk", configuration=CONFIG.LOGGER)
 
         self.logger.info(f"Initializing framework...")
-
-        self.started = False
 
         try:
             if not ACCESS_TOKEN or not GROUP_ID:
@@ -59,144 +71,106 @@ class TwilightVK:
         self.__group_id__ = GROUP_ID
         self.__api_version__ = API_VERSION
 
-        self.api_router = FrameworkRouter(self)
-
-        self.__tasks__ = []
-
-        self.__loop__ = asyncio.get_event_loop()
+        self._loop_wrapper = TwiTaskManager() if loop_wrapper is None else loop_wrapper
 
         API_MODES = {
             "BOTSLONGPOLL": BotsLongPoll(access_token=ACCESS_TOKEN,
                                          group_id=GROUP_ID,
-                                         api_version=API_VERSION)
+                                         api_version=API_VERSION,
+                                         loop_wrapper=self._loop_wrapper)
         }
         self.__bot__ = API_MODES.get(API_MODE, "BOTSLONGPOLL")
         self.methods = self.__bot__.vk_methods
-        self.on_event = self.__bot__.event_handler.on_event
+        self.on_event = self.__bot__._router.on_event
 
-        self.logger.debug(f"Framework is initialized")
+        self.api_router = FrameworkRouter(self)
+
+        if TWI_API_ENABLED:
+            self._api = TwilightAPI(
+                BOTS = [self],
+                HOST = HOST,
+                PORT = PORT,
+                loop_wrapper = self._loop_wrapper,
+                _need_root_router = False
+            )
+            self._loop_wrapper.add_task(self._api.run_server())
+
+        self._state = TwiVKStates.DISABLED
+        self.logger.info(f"Framework initialized")
 
     async def run_polling(self):
         '''
         Start polling
         '''
         try:
-            self.logger.info(f"Starting the framework...")
-            self.started = True
+            self._state = TwiVKStates.STARTING
+            self.logger.info(f"Framework is starting...")
+
             await self.__bot__.auth()
+
             if self.__bot__.__server__ is not None:
-                self.logger.info(f"{FG.BLUE}Framework is started{STYLE.RESET}")
-
-            #async for event_response in self.__bot__.listen():
-            #    for event in event_response["updates"]:
-            #        await self.__eventHandler__.handle(event)
-
-            async def process_events(event_response):
-                """Вспомогательная функция для обработки набора событий."""
-                try:
-                    events = []
-                    for event in event_response["updates"]:
-                        events.append(
-                            self.__loop__.create_task(
-                                self.__bot__.event_handler.handle(event)
-                            )
-                        )
-                    results = await asyncio.gather(*events, return_exceptions=True)
-                    for result, event in zip(results, event_response["updates"]):
-                        if isinstance(result, Exception):
-                            if not self.__bot__.__stop__:
-                                self.logger.error(f"Event handling error {event}: {result}")
-                                raise result
-                except Exception as ex:
-                    self.logger.error(f"{ex.__class__.__name__}: {ex}", exc_info=True)
+                self._state = TwiVKStates.READY
+                self.logger.info(f"{FG.GREEN}Framework is started (BOT_NAME: {self.bot_name}){STYLE.RESET}")
 
             async for event_response in self.__bot__.listen():
-                if self.started:
-                    self.__loop__.create_task(process_events(event_response))
+                if self._state == TwiVKStates.READY:
+                    self._loop_wrapper.add_task(self.__bot__._router.handle(event_response))
 
+        except KeyboardInterrupt:
+            self.logger.debug(f"TwilightVK was stopped by KeyboardInterrupt")
         except asyncio.CancelledError:
             self.logger.warning(f"Polling was forcibly canceled (it is not recommend to do this)")
         except Exception as exc:
             self.logger.critical(f"Framework was crashed with critical unhandled error", exc_info=True)
+            self._state = TwiVKStates.ERROR
         finally:
             #self.__loop__.stop()
-            if not self.__bot__.__stop__:
+            if self._state == TwiVKStates.READY and not self.__bot__.__stop__:
                 self.__bot__.stop()
             self.logger.info(f"{FG.RED}Framework has been stopped{STYLE.RESET}")
             await asyncio.sleep(0.1)
-            self.started = False
+            self._state = TwiVKStates.DISABLED
+            await self._api.stop()
 
 
     def start(self):
         '''
         Starts the bot and polling until stop() is called
         '''
-        self.logger.note(self.logo.colored)
-
-        self.__tasks__.append(self.run_polling())
-
-        if not self.__tasks__:
-            self.logger.warning("There is no tasks to run")
-            
-        while self.__tasks__:
-            self.__loop__.create_task(self.__tasks__.pop(0))
-
-        tasks = asyncio.all_tasks(self.__loop__)
         try:
-            while tasks:
-                tasks_results, _ = self.__loop__.run_until_complete(
-                    asyncio.wait(tasks, return_when=asyncio.FIRST_EXCEPTION)
-                )
-                for task_result in tasks_results:
-                    try:
-                        task_result.result()
-                    except Exception as exc:
-                        self.logger.critical(exc)
-                tasks = asyncio.all_tasks(self.__loop__)
-
+            self.logger.note(self.logo.colored)
+            self._loop_wrapper.add_task(self.run_polling())
+            self._loop_wrapper.run()
         except KeyboardInterrupt:
-            self.logger.warning(f"KeyboardInterrupt recieved, shutting down...")
-            self.stop(force=True, tasks=tasks)
-        finally:
-            self.__loop__.run_until_complete(self.__loop__.shutdown_asyncgens())
-            if self.__loop__.is_running():
-                self.__loop__.close()
+            self.logger.debug(f"TwilightVK was stopped by KeyboardInterrupt")
+        except Exception:
+            self.logger.critical("Unhandled error", exc_info=True)
 
-    def stop(self, force: bool = False, tasks: list[asyncio.Task] = None):
+    def stop(self, force: bool = False):
         '''
         Stops the polling and bot
 
         :param force: *[Optional]* Force stopping with cancelling all current event handlings
         :type force: bool
-
-        :param tasks: *[Optional]* List of asynchronous tasks is running now. Used only when *force=True*
-        :type tasks: list
         '''
-        if self.started:
+        if self._state == TwiVKStates.READY:
 
             self.logger.info(f"Shutting down...")
             self.should_stop()
 
-            if force:
-
-                self.logger.warning(f"Forced stop. For soft stop - use TwilightVK.should_stop() method")
-
-                if not tasks:
-                    tasks = asyncio.all_tasks(self.__loop__)
-                    
-                tasks_to_cancel = asyncio.gather(*tasks)
-                tasks_to_cancel.cancel()
-                with contextlib.suppress(asyncio.CancelledError):
-                    self.__loop__.run_until_complete(tasks_to_cancel)
+            #if force:
+            #    self.logger.warning(f"Forced stop. For soft stop - use TwilightVK.should_stop() method")
+            #    self._loop_wrapper.cancel_tasks(targets = [self.run_polling()])
     
     def should_stop(self):
         '''
         Tells the bot that it should stop after the next event
         '''
-        if not self.__bot__.__stop__:
+        if self._state == TwiVKStates.READY and not self.__bot__.__stop__:
             self.logger.info("Framework was asked to stop")
+            self._state = TwiVKStates.SHUTTING_DOWN
             self.__bot__.stop()
-        else:
+        elif self._state == TwiVKStates.SHUTTING_DOWN:
             self.logger.warning("Framework is already stopping")
 
     def __getApiRouters__(self):

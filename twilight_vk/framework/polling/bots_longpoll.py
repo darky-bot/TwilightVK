@@ -1,3 +1,5 @@
+import logging
+
 from aiohttp.client_exceptions import ClientConnectorDNSError
 from aiohttp import ClientResponse
 
@@ -10,18 +12,19 @@ from ..exceptions.vkapi import (
 from ...utils.config import CONFIG
 from ..methods.base import VkBaseMethods
 from ..methods import VkMethods
-from ..handlers import EventHandler
-from ...logger.darky_logger import DarkyLogger
+from ..handlers import EventRouter
 from ..validators.http_validator import HttpValidator
 from ..validators.event_validator import EventValidator
 from ...http.async_http import Http
+from ...utils.event_loop import TwiTaskManager
 
 class BotsLongPoll(BaseLongPoll):
 
     def __init__(self,
                  access_token:str=None,
                  group_id:int=None,
-                 api_version:str=CONFIG.VK_API.version) -> None:
+                 api_version:str=CONFIG.VK_API.version,
+                 loop_wrapper: TwiTaskManager = None) -> None:
         '''
         BotLongPoll provides a communication between your app and VK API
         Bots Long Poll API allows you to process community events in real time
@@ -40,7 +43,7 @@ class BotsLongPoll(BaseLongPoll):
         self.httpValidator = HttpValidator()
         self.eventValidator = EventValidator()
         self.httpClient = Http()
-        self.logger = DarkyLogger(self.__class__.__name__.lower(), configuration=CONFIG.LOGGER)
+        self.logger = logging.getLogger(self.__class__.__name__.lower())
         self.__access_token__ = access_token
         self.__group_id__ = group_id
         self.__api_url__ = CONFIG.VK_API.url
@@ -51,8 +54,9 @@ class BotsLongPoll(BaseLongPoll):
         self.__wait__ = CONFIG.VK_API.wait
         self.base_methods = VkBaseMethods(self.__api_url__, self.__access_token__, self.__group_id__)
         self.vk_methods = VkMethods(self.base_methods)
-        self.event_handler = EventHandler(self.vk_methods)
-        self.on_event = self.event_handler.on_event
+        self._loop_wrapper = loop_wrapper if loop_wrapper is not None else TwiTaskManager()
+        self._router = EventRouter(self.vk_methods, _loop_wrapper=self._loop_wrapper)
+        self.on_event = self._router.on_event
     
     async def auth(self, update_ts: bool = True):
 

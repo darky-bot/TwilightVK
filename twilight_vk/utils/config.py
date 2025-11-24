@@ -1,6 +1,7 @@
 from ..logger.formatters import (
     DarkyConsoleFormatter,
-    DarkyFileFormatter
+    DarkyFileFormatter,
+    UvicornAccessFormatter
 )
 
 class CONFIG:
@@ -13,6 +14,14 @@ class CONFIG:
         url = "https://api.vk.ru"
         version = "5.199"
         wait = 25
+
+    class API:
+        host = "0.0.0.0"
+        port = 8000
+        title = "Twilight API Swagger"
+        description = "Welcome to the Twilight API Swagger!"
+        version = "0.0.1"
+        prefix = "/api/v1"
 
     LOGGER = {
                 "version": 1,
@@ -28,6 +37,11 @@ class CONFIG:
                         "colored": True,
                         "color_core_name": True
                     },
+                    "uvicorn_access_console": {
+                        "()": UvicornAccessFormatter,
+                        "fmt": "%(name)s | %(asctime)s | %(levelname)s | %(client_addr)s - \"%(request_line)s\" %(status_code)s",
+                        "colored": True
+                    }
                 },
                 "handlers": {
                     "file": {
@@ -39,13 +53,38 @@ class CONFIG:
                         "encoding": "utf-8"
                     },
                     "console": {
-                        "level": "INIT",
+                        "level": "INFO",
                         "class": "logging.StreamHandler",
                         "formatter": "console"
+                    },
+                    "uvicorn_access_console": {
+                        "level": "INIT",
+                        "class": "logging.StreamHandler",
+                        "formatter": "uvicorn_access_console"
                     }
                 },
                 "loggers": {
+                    "twilight-api": {
+                        "handlers": ["console", "file"],
+                        "level": "INIT",
+                        "propagate": True
+                    },
+                    "uvicorn.access": {
+                        "handlers": ["uvicorn_access_console", "file"],
+                        "level": "INIT",
+                        "propagate": True
+                    },
+                    "uvicorn.error": {
+                        "handlers": ["uvicorn_access_console", "file"],
+                        "level": "WARNING",
+                        "propagate": True
+                    },
                     "twi-api-fw": {
+                        "handlers": ["console", "file"],
+                        "level": "INIT",
+                        "propagate": True
+                    },
+                    "twi-api-vkapi": {
                         "handlers": ["console", "file"],
                         "level": "INIT",
                         "propagate": True
@@ -75,6 +114,11 @@ class CONFIG:
                         "level": "INIT",
                         "propagate": True
                     },
+                    "event-router": {
+                        "handlers": ["console", "file"],
+                        "level": "INIT",
+                        "propagate": True
+                    },
                     "event-handler": {
                         "handlers": ["console", "file"],
                         "level": "INIT",
@@ -83,6 +127,16 @@ class CONFIG:
                     "rule-handler": {
                         "handlers": ["console", "file"],
                         "level": "INIT",
+                        "propagate": True
+                    },
+                    "loop-manager": {
+                        "handlers": ["console", "file"],
+                        "level": "INIT",
+                        "propagate": True
+                    },
+                    "asyncio": {
+                        "handlers": ["console", "file"],
+                        "level": "INFO",
                         "propagate": True
                     }
                 }
