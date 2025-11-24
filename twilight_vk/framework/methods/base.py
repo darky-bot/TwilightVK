@@ -1,4 +1,7 @@
+import logging
+
 from aiohttp import ClientResponse
+from fastapi import APIRouter
 
 from ...http.async_http import Http
 from ...logger.darky_logger import DarkyLogger
@@ -19,7 +22,7 @@ class VkBaseMethods:
         self.eventValidator = EventValidator()
         self.httpClientHeaders = {"Authorization": f"Bearer {token}"}
         self.httpClient = Http(self.httpClientHeaders)
-        self.logger = DarkyLogger("vk-methods", configuration=CONFIG.LOGGER)
+        self.logger = logging.getLogger("vk-methods")
 
     async def base_get_method(
             self,
@@ -79,13 +82,12 @@ class VkBaseMethods:
 class BaseMethodsGroup:
 
     def __init__(self,
-                 baseMethods:VkBaseMethods,
-                 logger:DarkyLogger):
+                 baseMethods:VkBaseMethods):
         self.__access_token__ = baseMethods.__token__
         self.__group_id__ = baseMethods.__group__
         self.__api_version__ = CONFIG.VK_API.version
         self.base_api = baseMethods
         self.__class_name__ = self.__class__.__name__
-        self.logger = logger
-        self.logger.initdebug(f"Class {self.__class_name__} was initiated")
+        self.logger = logging.getLogger("vk-methods")
+        self.logger.log(1, f"Class {self.__class_name__} was initiated")
         self.method = f"{self.__class_name__[0].lower()}{self.__class_name__[1:]}"

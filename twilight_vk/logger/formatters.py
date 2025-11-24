@@ -44,9 +44,9 @@ class MaskData:
 class DarkyConsoleFormatter(logging.Formatter):
 
     levelname_colors = {
-        "SUBDEBUG": f"{FG.CUSTOM_COLOR("#048")}SUBDEBUG{STYLE.RESET}",
-        "DEBUG": f"{FG.BLUE}DEBUG{STYLE.RESET}",
-        "INFO": f"{FG.GREEN}INFO{STYLE.RESET}",
+        "SUBDEBUG": f"{FG.CUSTOM_COLOR("#448")}SUBDEBUG{STYLE.RESET}",
+        "DEBUG": f"{FG.CUSTOM_COLOR("#66A")}DEBUG{STYLE.RESET}",
+        "INFO": f"{FG.CUSTOM_COLOR("#16F")}INFO{STYLE.RESET}",
         "WARNING": f"{FG.YELLOW}WARNING{STYLE.RESET}",
         "ERROR": f"{FG.BOLD}{FG.RED}ERROR{STYLE.RESET}",
         "CRITICAL": f"{FG.BOLD}{BG.RED}{FG.WHITE}CRITICAL{STYLE.RESET}",

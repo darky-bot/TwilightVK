@@ -1,7 +1,8 @@
+import logging
+
 from aiohttp import ClientResponse
 
 from ...utils.config import CONFIG
-from ...logger.darky_logger import DarkyLogger
 from ..exceptions.validator import (
     EventValidationError
 )
@@ -20,7 +21,7 @@ class EventValidator:
             self.__requiredFields__[-1],
             self.__pollingRequiredFileds__[-1]
             ]
-        self.logger = DarkyLogger("event-validator", CONFIG.LOGGER, silent=True)
+        self.logger = logging.getLogger("event-validator")
 
     async def __isJsonValid__(self,
                               response:ClientResponse) -> bool:

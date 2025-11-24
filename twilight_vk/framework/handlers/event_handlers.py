@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
 from typing import List, Callable
+import logging
 
 import asyncio
 
 from ...utils.config import CONFIG
-from ...logger.darky_logger import DarkyLogger
 from ...utils.types.response import ResponseHandler
 from ..exceptions.handler import (
     ResponseHandlerError
@@ -26,8 +26,8 @@ class BASE_EVENT_HANDLER:
         :param vk_methods: Initialized VkMethods class which allows to use VK API methods
         :type vk_methods: VkMethods
         '''
-        self.logger = DarkyLogger(f"event-handler", CONFIG.LOGGER, silent=True)
-        self.logger.initdebug(f"{self.__class__.__name__} event handler is initiated")
+        self.logger = logging.getLogger(f"event-handler")
+        self.logger.log(1, f"{self.__class__.__name__} event handler is initiated")
 
         self.vk_methods = vk_methods
 
@@ -45,7 +45,7 @@ class BASE_EVENT_HANDLER:
                 "func": func
             }
         )
-        self.logger.initdebug(f"{func.__name__}() was added to {self.__class__.__name__} "\
+        self.logger.log(1, f"{func.__name__}() was added to {self.__class__.__name__} "\
                           f"with rules: {[f"{rule.__class__.__name__}" for rule in rules]}")
     
     async def __checkRule__(self,
@@ -116,7 +116,11 @@ class BASE_EVENT_HANDLER:
                 callback = ResponseHandler(
                     peer_ids=event["object"]["message"]["peer_id"],
                     message=callback,
-                    reply_to=event["object"]["message"]["id"]
+                    forward={
+                        "peer_id": event["object"]["message"]["peer_id"],
+                        "conversation_message_ids": event["object"]["message"]["conversation_message_id"],
+                        "is_reply": True
+                    }
                 )
             if isinstance(callback, ResponseHandler):
                 response = await self.vk_methods.messages.send(**callback.getData())
