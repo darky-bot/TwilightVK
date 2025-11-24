@@ -82,13 +82,3 @@ class Http:
         if self.session is not None and not self.session.closed:
             await self.session.close()
             self.session = None
-
-async def main():
-    httpClient = Http()
-    print(await httpClient.get('http://httpbin.org/get', raw=False))
-    print(await httpClient.post('http://httpbin.org/post', {"user": "123", "pass": "123"}, {"header": "TestHeader"}))
-    await httpClient.close()
-
-if __name__ == "__main__":
-    import asyncio
-    asyncio.run(main())
