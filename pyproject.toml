@@ -20,14 +20,6 @@ dependencies = [
     "uvicorn==0.34.0",
 ]
 
-[project.optional-dependencies]
-dev = [
-    "pytest>=8.3.0",
-    "pytest-asyncio>=1.0.0",
-    "pytest-mock>=3.15.0",
-    "pytest-mypy>=1.0.0",
-]
-
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
@@ -42,6 +34,14 @@ classifiers = [
 Homepage = "https://github.com/darky-bot/TwilightVK"
 Repository = "https://github.com/darky-bot/TwilightVK"
 Issues = "https://github.com/darky-bot/TwilightVK/issues"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.0",
+    "pytest-asyncio>=1.0.0",
+    "pytest-mock>=3.15.0",
+    "pytest-mypy>=1.0.0",
+]
 
 [tool.setuptools]
 packages = {find = {}}
