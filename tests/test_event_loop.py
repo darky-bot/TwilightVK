@@ -53,5 +53,5 @@ async def test_wrapper_addtask_list(loop: TwiTaskManager, log_fixture):
 def test_wrapper_stop(loop: TwiTaskManager, log_fixture):
     loop.add_task(fake_coro3())
     loop.stop()
-    assert "Stopping tasks..." in log_fixture.text
+    assert "Stopping all tasks..." in log_fixture.text
     assert "Tasks was stopped" in log_fixture.text
