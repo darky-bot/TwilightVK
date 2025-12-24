@@ -1,7 +1,7 @@
 ![Logo](/docs/SVG/logo-transparent.svg)
 
 <p align="center">
-    <img alt="Framework Version" src="https://img.shields.io/badge/latest_version-0.1.0--beta-A04">
+    <img alt="Framework Version" src="https://img.shields.io/badge/latest_version-0.1.0b1-A04">
     <img alt="Python Version" src="https://img.shields.io/badge/python-3.12-A04">
     <img alt="PyPi" src="https://img.shields.io/badge/pypi-not_yet-000">
     <img alt="Issues" src="https://img.shields.io/github/issues/darky-bot/TwilightVK">
@@ -28,9 +28,6 @@ TwilightVK является личным экспериментом и не об
 
 ## Установка
 
-Установить фреймворк пока что можно только через git clone, но когда-нибудь он опубликуется на PyPi, а также появится возможность установить его через git
+Установить фреймворк можно через команду `pip install`
 
-#### git clone
-Для установки через git clone клонируйте репозиторий либо в директорию со всеми установленными через pip пакетами, либо рядом с вашим будущим проектом для предотвращения ошибок при импорте библиотеки
-
-     git clone https://github.com/darky-bot/TwilightVK.git
+    pip install twilight_vk

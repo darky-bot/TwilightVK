@@ -1,8 +1,4 @@
-import re
 import asyncio
-import contextlib
-
-from fastapi import APIRouter
 
 from ..api.twilight_api import TwilightAPI
 from .api import FrameworkRouter
@@ -85,7 +81,10 @@ class TwilightVK:
 
         self.api_router = FrameworkRouter(self)
 
-        if TWI_API_ENABLED:
+        self._api: TwilightAPI = None
+
+        #if TWI_API_ENABLED:
+        if False:
             self._api = TwilightAPI(
                 BOTS = [self],
                 HOST = HOST,
@@ -132,8 +131,10 @@ class TwilightVK:
                 self.__bot__.stop()
             self.logger.info(f"{FG.RED}Framework has been stopped{STYLE.RESET}")
             await asyncio.sleep(0.1)
-            self._state = TwiVKStates.DISABLED
-            await self._api.stop()
+            if self._state not in [TwiVKStates.ERROR]:
+                self._state = TwiVKStates.DISABLED
+            if self._api:
+                await self._api.stop()
 
 
     def start(self):
