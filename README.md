@@ -3,7 +3,7 @@
 <p align="center">
     <img alt="Framework Version" src="https://img.shields.io/badge/latest_version-0.1.0b1-A04">
     <img alt="Python Version" src="https://img.shields.io/badge/python-3.12-A04">
-    <img alt="PyPi" src="https://img.shields.io/badge/pypi-not_yet-000">
+    <img alt="PyPi" src="https://img.shields.io/pypi/v/twilight_vk?color=blue&label=PyPI">
     <img alt="Issues" src="https://img.shields.io/github/issues/darky-bot/TwilightVK">
 </pg>
 
