@@ -111,22 +111,24 @@ class BASE_EVENT_HANDLER:
         :type callback: str | ResponseHandler
         '''
         self.logger.debug(f"Handling response for {self.__class__.__name__}.{func.__name__}...")
-        if callback:
-            if isinstance(callback, str):
-                callback = ResponseHandler(
-                    peer_ids=event["object"]["message"]["peer_id"],
-                    message=callback,
-                    forward={
-                        "peer_id": event["object"]["message"]["peer_id"],
-                        "conversation_message_ids": event["object"]["message"]["conversation_message_id"],
-                        "is_reply": True
-                    }
-                )
-            if isinstance(callback, ResponseHandler):
-                response = await self.vk_methods.messages.send(**callback.getData())
-                return response
-            if isinstance(callback, None):
-                return True
+
+        if callback is None:
+            self.logger.debug(f"Callback is None. Output handling was skipped")
+            return True
+
+        if isinstance(callback, str):
+            callback = ResponseHandler(
+                peer_ids=event["object"]["message"]["peer_id"],
+                message=callback,
+                forward={
+                    "peer_id": event["object"]["message"]["peer_id"],
+                    "conversation_message_ids": event["object"]["message"]["conversation_message_id"],
+                    "is_reply": True
+                }
+            )
+        if isinstance(callback, ResponseHandler):
+            response = await self.vk_methods.messages.send(**callback.getData())
+            return response
         raise ResponseHandlerError(callback, isinstance(callback, ResponseHandler | None))
         
     async def __callFunc__(self, handler:dict, event:dict):

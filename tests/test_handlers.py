@@ -20,7 +20,7 @@ class MockPolling:
         events = {"updates": []}
         for attr_name, attr_value in vars(BotEventType).items():
             if "__" not in attr_name:
-                events["updates"].append({"type": attr_value})
+                events["updates"].append({"type": attr_value, "object": {"message": {"peer_id": 123, "conversation_message_id": 1}}})
         return events
 
     
@@ -42,23 +42,35 @@ async def test_labeler(bot: TwilightVK, caplog):
         assert isinstance(bot.__bot__._router._handlers[handler_name].__funcs__[0].get("rules")[0], TrueRule)
     
 @pytest.mark.asyncio
-async def test_eventhandlers(bot: TwilightVK, monkeypatch):
+async def test_eventhandlers(monkeypatch):
+
+    _bot = TwilightVK(ACCESS_TOKEN="123", GROUP_ID=123)
     
-    @bot.on_event.all(TrueRule())
+    @_bot.on_event.all(TrueRule())
     async def handle(event: dict):
         assert isinstance(event, dict)
-        assert event.keys() == {'type': 'test'}.keys()
+        assert event.keys() == {'type': 'test', 'object': 'test'}.keys()
         return "OK"
     
-    async def fake_outputHandler(*args, **kwargs):
-        assert True
+    @_bot.on_event.all(TrueRule())
+    async def handle2(event: dict):
+        assert isinstance(event, dict)
+        assert event.keys() == {'type': 'test', 'object': 'test'}.keys()
     
-    for handler_name in bot.__bot__._router._handlers.keys():
-        monkeypatch.setattr(bot.__bot__._router._handlers[handler_name], "__handleOutput__", fake_outputHandler)
+    async def fake_messageSend(*args, **kwargs):
+        return True
+    
+    for handler_name in _bot.__bot__._router._handlers.keys():
+        monkeypatch.setattr(_bot.__bot__._router._handlers[handler_name].vk_methods.messages, "send", fake_messageSend)
 
     results = await asyncio.gather(
-        *(bot.__bot__._router.route(event) for event in MockPolling.get()["updates"]),
-        return_exceptions=True
+        *(_bot.__bot__._router.route(event) for event in MockPolling.get()["updates"]),
+        return_exceptions=False
     )
     for result in results:
-        assert isinstance(result, Exception) == False
+        
+        if result is None:
+            assert True
+            continue
+
+        assert result
