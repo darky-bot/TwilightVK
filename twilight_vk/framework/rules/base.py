@@ -1,10 +1,8 @@
 from typing import TYPE_CHECKING
 from typing import Any
+import logging
 
-from ...logger.darky_logger import DarkyLogger
-from ...utils.config_loader import Configuration
-
-CONFIG = Configuration().get_config()
+from ...utils.config import CONFIG
 
 if TYPE_CHECKING:
     from ..methods import VkMethods
@@ -22,9 +20,9 @@ class BaseRule:
         self.event: dict = None
         self.methods: "VkMethods" = None
         self.kwargs: dict = kwargs
-        self.logger = DarkyLogger("rule-handler", configuration=CONFIG.LOGGER, silent=True)
+        self.logger = logging.getLogger("rule-handler")
         self.__parseKwargs__()
-        self.logger.initdebug(f"Rule {self.__class__.__name__}({", ".join(self.__printKwargs__())}) is initiated")
+        self.logger.log(1, f"Rule {self.__class__.__name__}({", ".join(self.__printKwargs__())}) is initiated")
     
     def __parseKwargs__(self):
         '''

@@ -8,6 +8,7 @@ __pycache__/
 
 #workspaces
 *.code-workspace
+*.nix
 
 # Distribution / packaging
 .Python

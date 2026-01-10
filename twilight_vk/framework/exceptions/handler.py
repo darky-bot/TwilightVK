@@ -42,4 +42,4 @@ class ResponseHandlerError(HandlerError):
     def __str__(self):
         return f"Response handler error"\
         f"{f" : function callback is not instance of ResponseHandler, make sure you are returning correct values in your functions"\
-           if self._isinstance is not None and not self._isinstance else ""}"
+           if self._isinstance is not None and not self._isinstance else self.callback}"

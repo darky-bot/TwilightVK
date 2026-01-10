@@ -1,16 +1,14 @@
+import logging
+
 from aiohttp import ClientResponse
 from http import HTTPStatus
 
-from ...utils.config_loader import Configuration
-from ...logger.darky_logger import DarkyLogger
 from ..exceptions.validator import HttpValidationError
-
-CONFIG = Configuration().get_config()
 
 class HttpValidator:
 
     def __init__(self):
-        self.logger = DarkyLogger("http-validator", CONFIG.LOGGER, silent=True)
+        self.logger = logging.getLogger("http-validator")
 
     async def __isValid__(self,
                           response:ClientResponse) -> bool:

@@ -178,6 +178,8 @@ async def test_polling_listen(bot: TwilightVK, caplog, monkeypatch):
 @pytest.mark.asyncio
 async def test_polling_failed(bot: TwilightVK, caplog, monkeypatch):
 
+    bot._state = "ready"
+
     bot.should_stop()
 
     async def fake_getBotLongPollServer():
@@ -203,5 +205,7 @@ async def test_polling_failed(bot: TwilightVK, caplog, monkeypatch):
 @pytest.mark.asyncio
 async def test_polling_stop(bot: TwilightVK, caplog, monkeypatch):
 
+    bot._state = "ready"
+    
     bot.should_stop()
     assert "Polling will be stopped as soon as the current request will be done. Please wait" in caplog.text

@@ -10,8 +10,7 @@ class Messages(BaseMethodsGroup):
                                      count: int | None = None,
                                      extended: bool = False,
                                      fields: str | None = None,
-                                     group_id: int | None = None,
-                                     **kwargs):
+                                     group_id: int | None = None):
         '''
         Метод получает список участников беседы.
         (см. https://dev.vk.ru/ru/method/messages.getConversationMembers)
@@ -20,43 +19,39 @@ class Messages(BaseMethodsGroup):
             "peer_id": peer_id,
             "offset": abs(offset) if offset is not None else None,
             "count": abs(count) if count is not None else None,
-            "extended": extended,
+            "extended": "true" if extended else "false",
             "fields": fields,
             "group_id": abs(group_id) if group_id is not None else self.__group_id__,
             "v": self.__api_version__
         }
         response = await self.base_api.base_get_method(api_method=f"{self.method}.getConversationMembers",
-                                                       values=values,
-                                                       validate=False)
+                                                       values=values)
         return response
 
     async def getConversationById(self,
                                   peer_ids: int | list[int],
                                   extended: bool = False,
                                   fields: str | None = None,
-                                  group_id: int | None = None,
-                                  **kwargs):
+                                  group_id: int | None = None):
         '''
         Позволяет получить беседу по её идентификатору.
         (см. https://dev.vk.ru/ru/method/messages.getConversationsById)
         '''
         values = {
             "peer_ids": ",".join([f"{pid}" for pid in peer_ids]) if isinstance(peer_ids, list) else f"{peer_ids}",
-            "extended": extended,
+            "extended": "true" if extended else "false",
             "fields": fields,
             "group_id": abs(group_id) if group_id is not None else self.__group_id__,
             "v": self.__api_version__
         }
-        response = await self.base_api.base_get_method(api_method=f"{self.method}.getConversationById",
-                                                       values=values,
-                                                       validate=False)
+        response = await self.base_api.base_get_method(api_method=f"{self.method}.getConversationsById",
+                                                       values=values)
         return response
     
     async def removeChatUser(self,
                              chat_id: int,
                              user_id: int | None = None,
-                             member_id: int | None = None,
-                             **kwargs):
+                             member_id: int | None = None):
         '''
         Исключает из мультидиалога пользователя, если текущий пользователь или сообщество
         является администратором беседы либо текущий пользователь пригласил исключаемого пользователя.
@@ -69,8 +64,7 @@ class Messages(BaseMethodsGroup):
             "v": self.__api_version__
         }
         response = await self.base_api.base_get_method(api_method=f"{self.method}.removeChatUser",
-                                                       values=values,
-                                                       validate=False)
+                                                       values=values)
         return response
     
     async def send(self,
@@ -96,8 +90,7 @@ class Messages(BaseMethodsGroup):
                    dont_parse_links: bool = None,
                    disable_mentions: bool = None,
                    intent: str = None,
-                   subsribe_id: int = None,
-                   **kwargs):
+                   subsribe_id: int = None):
         
         '''
         Отправляет сообщение
@@ -125,13 +118,12 @@ class Messages(BaseMethodsGroup):
             "template": template,
             "payload": payload,
             "content_source": content_source,
-            "dont_parse_links": dont_parse_links,
-            "disable_mentions": disable_mentions,
+            "dont_parse_links": "true" if dont_parse_links else "false",
+            "disable_mentions": "true" if disable_mentions else "false",
             "intent": intent,
             "subscribe_id": abs(subsribe_id) if subsribe_id is not None else None,
             "v": self.__api_version__
         }
         response = await self.base_api.base_get_method(api_method=f"{self.method}.send",
-                                                       values=values,
-                                                       validate=False)
+                                                       values=values)
         return response

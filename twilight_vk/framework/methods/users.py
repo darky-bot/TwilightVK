@@ -1,13 +1,22 @@
+from typing import overload
+
 from .base import BaseMethodsGroup
 
 class Users(BaseMethodsGroup):
+
+    @overload
+    async def get(self,
+                  user_ids: str,
+                  fields: str = None,
+                  name_case: str = None,
+                  from_group_id: int = None):
+        ...
 
     async def get(self,
                   user_ids: str | list[str],
                   fields: str = None,
                   name_case: str = None,
-                  from_group_id: int = None,
-                  **kwargs):
+                  from_group_id: int = None):
         '''
         Метод позволяет получить информацию о пользователях.
         (см. https://dev.vk.ru/ru/method/users.get)
@@ -20,6 +29,5 @@ class Users(BaseMethodsGroup):
             "v": self.__api_version__
         }
         response = await self.base_api.base_get_method(api_method=f"{self.method}.get",
-                                                       values=values,
-                                                       validate=False)
+                                                       values=values)
         return response

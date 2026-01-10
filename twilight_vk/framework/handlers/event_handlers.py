@@ -1,10 +1,10 @@
 from typing import TYPE_CHECKING
 from typing import List, Callable
+import logging
 
 import asyncio
 
-from ...utils.config_loader import Configuration
-from ...logger.darky_logger import DarkyLogger
+from ...utils.config import CONFIG
 from ...utils.types.response import ResponseHandler
 from ..exceptions.handler import (
     ResponseHandlerError
@@ -13,8 +13,6 @@ from ..rules import *
 
 if TYPE_CHECKING:
     from ..methods import VkMethods
-
-CONFIG = Configuration().get_config()
 
 class BASE_EVENT_HANDLER:
 
@@ -28,8 +26,8 @@ class BASE_EVENT_HANDLER:
         :param vk_methods: Initialized VkMethods class which allows to use VK API methods
         :type vk_methods: VkMethods
         '''
-        self.logger = DarkyLogger(f"event-handler", CONFIG.LOGGER, silent=True)
-        self.logger.initdebug(f"{self.__class__.__name__} event handler is initiated")
+        self.logger = logging.getLogger(f"event-handler")
+        self.logger.log(1, f"{self.__class__.__name__} event handler is initiated")
 
         self.vk_methods = vk_methods
 
@@ -47,7 +45,7 @@ class BASE_EVENT_HANDLER:
                 "func": func
             }
         )
-        self.logger.initdebug(f"{func.__name__}() was added to {self.__class__.__name__} "\
+        self.logger.log(1, f"{func.__name__}() was added to {self.__class__.__name__} "\
                           f"with rules: {[f"{rule.__class__.__name__}" for rule in rules]}")
     
     async def __checkRule__(self,
@@ -113,18 +111,24 @@ class BASE_EVENT_HANDLER:
         :type callback: str | ResponseHandler
         '''
         self.logger.debug(f"Handling response for {self.__class__.__name__}.{func.__name__}...")
-        if callback:
-            if isinstance(callback, str):
-                callback = ResponseHandler(
-                    peer_ids=event["object"]["message"]["peer_id"],
-                    message=callback,
-                    reply_to=event["object"]["message"]["id"]
-                )
-            if isinstance(callback, ResponseHandler):
-                response = await self.vk_methods.messages.send(**callback.getData())
-                return response
-            if isinstance(callback, None):
-                return True
+
+        if callback is None:
+            self.logger.debug(f"Callback is None. Output handling was skipped")
+            return True
+
+        if isinstance(callback, str):
+            callback = ResponseHandler(
+                peer_ids=event["object"]["message"]["peer_id"],
+                message=callback,
+                forward={
+                    "peer_id": event["object"]["message"]["peer_id"],
+                    "conversation_message_ids": event["object"]["message"]["conversation_message_id"],
+                    "is_reply": True
+                }
+            )
+        if isinstance(callback, ResponseHandler):
+            response = await self.vk_methods.messages.send(**callback.getData())
+            return response
         raise ResponseHandlerError(callback, isinstance(callback, ResponseHandler | None))
         
     async def __callFunc__(self, handler:dict, event:dict):
