@@ -31,15 +31,15 @@ class BASE_EVENT_HANDLER:
 
         self.vk_methods = vk_methods
 
-        self.__funcs__: List[dict[list[BaseRule], Callable]] = []
+        self._funcs: List[dict[list[BaseRule], Callable]] = []
     
-    def __add__(self, 
+    def add(self, 
                 func, 
                 rules: list):
         '''
         Allows to add callable functions into this handler
         '''
-        self.__funcs__.append(
+        self._funcs.append(
             {
                 "rules": rules,
                 "func": func
@@ -48,26 +48,26 @@ class BASE_EVENT_HANDLER:
         self.logger.log(1, f"{func.__name__}() was added to {self.__class__.__name__} "\
                           f"with rules: {[f"{rule.__class__.__name__}" for rule in rules]}")
     
-    async def __checkRule__(self,
+    async def _checkRule(self,
                             rule: BaseRule, 
                             event: dict):
         '''
         Checking rule result for current function and event
         '''
         if not hasattr(rule, "methods") or rule.methods is None:
-            await rule.__linkVkMethods__(self.vk_methods)
+            await rule._linkVkMethods(self.vk_methods)
 
-        result = await rule.__check__(event)
+        result = await rule._check(event)
 
         return result
 
-    async def __checkRules__(self, func, handler, event):
+    async def _checkRules(self, func, handler, event):
         '''
         Checks all results
         '''
         self.logger.debug(f"Checking rules for {func.__name__} from {self.__class__.__name__}...")
         rule_results = await asyncio.gather(
-            *(self.__checkRule__(rule, event) for rule in handler["rules"]),
+            *(self._checkRule(rule, event) for rule in handler["rules"]),
             return_exceptions=False
         )
         self.logger.debug(f"Rules check results: {rule_results}")
@@ -88,7 +88,7 @@ class BASE_EVENT_HANDLER:
         
         return rule_results
     
-    async def __extractArgs__(self, rule_results:list):
+    async def _extractArgs(self, rule_results:list):
         '''
         Extracts all args from rule_results after regex rules
         '''
@@ -100,6 +100,67 @@ class BASE_EVENT_HANDLER:
                         args.setdefault(key, value)
         return args
    
+    async def _handleOutput(self,
+                               func,
+                               callback: str|ResponseHandler,
+                               event):
+        '''
+        Handles the output from functions which was added to handler
+
+        :param callback: Function's output
+        :type callback: str | ResponseHandler
+        '''
+        self.logger.warning("Output handler is empty. Will be skipped.")
+        
+    async def _callFunc(self, handler:dict, event:dict):
+        '''
+        Executes separate function from self.__funcs__ list
+        '''
+        func = handler["func"]
+
+        rule_results = await self._checkRules(func, handler, event)
+
+        extracted_args = await self._extractArgs(rule_results)
+        
+        if rule_results is not False:
+            self.logger.debug(f"Calling {func.__name__} from {self.__class__.__name__}...")
+            if asyncio.iscoroutinefunction(func):
+                response = await func(event, **extracted_args)
+            else:
+                response = func(event, **extracted_args)
+
+            result = await self._handleOutput(func, response, event)
+            self.logger.debug(f"{func.__name__} from {self.__class__.__name__} was called")
+
+    async def execute(self, 
+                      event: dict, 
+                      in_gather: bool = True):
+        '''
+        Handles the event
+
+        :param in_gather: Flag which switches the handling mode (one after one or all in one)
+        :type in_gather: bool
+        '''
+        self.logger.debug(f"{self.__class__.__name__} is working right now...")
+        
+        if in_gather:
+            self.logger.debug(f"Handling mode: {"all in one" if in_gather else "one after one"}")
+            await asyncio.gather(
+                *(self._callFunc(handler, event) for handler in self._funcs),
+                return_exceptions=False
+            )
+        else:
+            for handler in self._funcs:
+                await self._callFunc(handler, event)
+
+        self.logger.debug(f"{self.__class__.__name__} is finished handling the event")
+
+
+class DEFAULT_HANDLER(BASE_EVENT_HANDLER):
+    pass
+
+class MESSAGE_NEW(DEFAULT_HANDLER):
+    
     async def __handleOutput__(self,
                                func,
                                callback:str|ResponseHandler,
@@ -109,7 +170,7 @@ class BASE_EVENT_HANDLER:
 
         :param callback: Function's output
         :type callback: str | ResponseHandler
-        '''
+        '''    
         self.logger.debug(f"Handling response for {self.__class__.__name__}.{func.__name__}...")
 
         if callback is None:
@@ -130,54 +191,6 @@ class BASE_EVENT_HANDLER:
             response = await self.vk_methods.messages.send(**callback.getData())
             return response
         raise ResponseHandlerError(callback, isinstance(callback, ResponseHandler | None))
-        
-    async def __callFunc__(self, handler:dict, event:dict):
-        '''
-        Executes separate function from self.__funcs__ list
-        '''
-        func = handler["func"]
 
-        rule_results = await self.__checkRules__(func, handler, event)
-
-        extracted_args = await self.__extractArgs__(rule_results)
-        
-        if rule_results is not False:
-            self.logger.debug(f"Calling {func.__name__} from {self.__class__.__name__}...")
-            if asyncio.iscoroutinefunction(func):
-                response = await func(event, **extracted_args)
-            else:
-                response = func(event, **extracted_args)
-
-            result = await self.__handleOutput__(func, response, event)
-            if result:
-                self.logger.debug(f"{func.__name__} from {self.__class__.__name__} was called")
-
-    async def __execute__(self, event):
-        '''
-        Handles the event synchronously
-        '''
-        self.logger.debug(f"{self.__class__.__name__} is working right now...")
-        for handler in self.__funcs__:
-            await self.__callFunc__(handler, event)
-        self.logger.debug(f"{self.__class__.__name__} is finished handling the event")
-    
-    async def __executeAsync__(self, event):
-        '''
-        Handles the event asynchronously
-        '''
-        self.logger.debug(f"{self.__class__.__name__} is working asynchronously right now...")
-        await asyncio.gather(
-            *(self.__callFunc__(handler, event) for handler in self.__funcs__),
-            return_exceptions=False
-        )
-        self.logger.debug(f"{self.__class__.__name__} is finished asynchronously handling the event")
-
-
-class DEFAULT_HANDLER(BASE_EVENT_HANDLER):
-    pass
-
-class MESSAGE_NEW(BASE_EVENT_HANDLER):
-    pass
-
-class MESSAGE_REPLY(BASE_EVENT_HANDLER):
+class MESSAGE_REPLY(MESSAGE_NEW):
     pass

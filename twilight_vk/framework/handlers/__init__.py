@@ -22,13 +22,13 @@ class OnEventLabeler:
     def all(self, *rules):
         def decorator(func):
             for handler_name in self.handlers.keys():
-                self.handlers[handler_name].__add__(func, rules)
+                self.handlers[handler_name].add(func, rules)
             return func
         return decorator
     
     def message_new(self, *rules):
         def decorator(func):
-            self.handlers[BotEventType.MESSAGE_NEW].__add__(func, rules)
+            self.handlers[BotEventType.MESSAGE_NEW].add(func, rules)
             return func
         return decorator
 
@@ -78,4 +78,4 @@ class EventRouter:
         event_type = current_event.get("type", "default")
         handler:BASE_EVENT_HANDLER = self._handlers.get(event_type, self._handlers["default"])
         self.logger.debug(f"Routing the event {current_event.get("type")} to the {handler.__class__.__name__} handler")
-        await handler.__executeAsync__(current_event)
+        await handler.execute(current_event)
