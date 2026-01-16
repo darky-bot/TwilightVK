@@ -112,7 +112,7 @@ class TwilightVK:
                 self.logger.info(f"{FG.GREEN}Framework is started (BOT_NAME: {self.bot_name}){STYLE.RESET}")
             else:
                 self.logger.error(f"Server was not aquired. Exiting...")
-                self.should_stop()
+                self._state = TwiVKStates.ERROR
 
             async for event_response in self.__bot__.listen():
                 if self._state == TwiVKStates.READY:
@@ -177,7 +177,7 @@ class TwilightVK:
         elif self._state == TwiVKStates.SHUTTING_DOWN:
             self.logger.warning("Framework is already stopping")
         else:
-            self.logger.error(f"Unable to stop framework for some reason. BOT_STATE={self._state}")
+            self.logger.error(f"Unable to stop framework for some reason. BOT_STATE={self._state} {self.__bot__.__stop__}")
 
     def __getApiRouters__(self):
         return self.api_router.get_router()

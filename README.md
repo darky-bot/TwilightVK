@@ -30,4 +30,4 @@ TwilightVK является личным экспериментом и не об
 
 Установить фреймворк можно через команду `pip install`
 
-    pip install twilight_vk
+    pip install twilight-vk

@@ -161,7 +161,7 @@ class DEFAULT_HANDLER(BASE_EVENT_HANDLER):
 
 class MESSAGE_NEW(DEFAULT_HANDLER):
     
-    async def __handleOutput__(self,
+    async def _handleOutput(self,
                                func,
                                callback:str|ResponseHandler,
                                event):
