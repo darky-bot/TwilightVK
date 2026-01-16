@@ -191,13 +191,13 @@ async def test_rules(fake_event: dict, messages_list: list, results: list, rules
         fake_event["object"]["message"]["action"] = messages_list["actions"][test]
         if fake_event["object"]["message"]["action"] == None:
             fake_event["object"]["message"].__delitem__("action")
-        rule_results = [await rule.__check__(fake_event) for rule in rules_list]
+        rule_results = [await rule._check(fake_event) for rule in rules_list]
         assert rule_results == results[test]
 
 @pytest.mark.asyncio
 async def test_handlerinput(fake_event: dict, messages_list: list, results: list, rules_list: list[BaseRule], handler_results: list):
     for test in range(len(messages_list["messages"])):
         fake_event["object"]["message"]["text"] = messages_list["messages"][test]
-        rule_results = [await rule.__check__(fake_event) for rule in rules_list]
-        handler_result = await DEFAULT_HANDLER(MockVkMethods()).__extractArgs__(rule_results)
+        rule_results = [await rule._check(fake_event) for rule in rules_list]
+        handler_result = await DEFAULT_HANDLER(MockVkMethods())._extractArgs(rule_results)
         assert handler_result == handler_results[test]

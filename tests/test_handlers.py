@@ -38,8 +38,8 @@ async def test_labeler(bot: TwilightVK, caplog):
                                       "handle() was added to MESSAGE_REPLY with rules: ['TrueRule']",
                                       "handle() was added to DEFAULT_HANDLER with rules: ['TrueRule']"]
     for handler_name in bot.__bot__._router._handlers.keys():
-        assert bot.__bot__._router._handlers[handler_name].__funcs__[0].get("func", False) == handle
-        assert isinstance(bot.__bot__._router._handlers[handler_name].__funcs__[0].get("rules")[0], TrueRule)
+        assert bot.__bot__._router._handlers[handler_name]._funcs[0].get("func", False) == handle
+        assert isinstance(bot.__bot__._router._handlers[handler_name]._funcs[0].get("rules")[0], TrueRule)
     
 @pytest.mark.asyncio
 async def test_eventhandlers(monkeypatch):

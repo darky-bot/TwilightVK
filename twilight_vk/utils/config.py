@@ -7,7 +7,7 @@ from ..logger.formatters import (
 class CONFIG:
 
     class FRAMEWORK:
-        version = "0.1.0-beta1"
+        version = "0.1.0-beta2"
         developer = "darky_wings"
     
     class VK_API:
