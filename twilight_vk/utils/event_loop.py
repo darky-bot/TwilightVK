@@ -1,6 +1,7 @@
 import asyncio
 import contextlib
 import logging
+import signal
 from typing import Coroutine, overload
 
 class TwiTaskManager:
@@ -19,9 +20,24 @@ class TwiTaskManager:
         self.logger = logging.getLogger(name="loop-manager")
         self._tasks: list[asyncio.Task] = tasks
         self._loop: asyncio.AbstractEventLoop = asyncio.get_event_loop() if loop is None else loop
+        
+    def _signal_handlers_init(self):
+        '''
+        SIGTERM event handler for graceful stopping
+        '''
+        try:
+            self._loop.add_signal_handler(signal.SIGTERM,
+                                          self.stop())
+            self.logger.debug("Signal handler installed for SIGTERM")
+        except NotImplementedError:
+            self.logger.warning("add_signal_handler is not supported, using default hanlders")
+            signal.signal(signal.SIGTERM,
+                          self.stop())
     
-    def get_loop(self):
-        '''Returns a loop if it was created'''
+    def get_loop(self) -> asyncio.AbstractEventLoop:
+        '''
+        Returns a loop if it was created
+        '''
         if self._loop:
             return self._loop
         self.logger.warning("Event loop was not created")
@@ -34,6 +50,8 @@ class TwiTaskManager:
         :type stop_when: str
         '''
         self.logger.debug(f"Loop was started with {len(self._tasks)} tasks")
+
+        self._signal_handlers_init()
 
         while self._tasks:
             self._loop.create_task(self._tasks.pop(0))
