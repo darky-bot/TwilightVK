@@ -27,12 +27,13 @@ class TwiTaskManager:
         '''
         try:
             self._loop.add_signal_handler(signal.SIGTERM,
-                                          self.stop())
+                                          lambda: asyncio.create_task(self._astop()))
             self.logger.debug("Signal handler installed for SIGTERM")
         except NotImplementedError:
             self.logger.warning("add_signal_handler is not supported, using default hanlders")
             signal.signal(signal.SIGTERM,
-                          self.stop())
+                          self.stop)
+
     
     def get_loop(self) -> asyncio.AbstractEventLoop:
         '''
@@ -75,9 +76,22 @@ class TwiTaskManager:
         except KeyboardInterrupt:
             self.logger.warning("KeyboardInterrupt recieved, shutting down...")
             self.stop(_all_tasks)
+        except asyncio.CancelledError:
+            self.logger.warning("Tasks was cancelled probably by SIGTERM")
 
         finally:
             self.close()
+        
+    async def _astop(self):
+        
+        self.logger.warning("SIGTERM recieved, shutting down...")
+        tasks = asyncio.all_tasks(self._loop)
+
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+            
+        asyncio.gather(*tasks, return_exceptions=True)
 
     def stop(self, tasks: list[asyncio.Task] = None):
         '''

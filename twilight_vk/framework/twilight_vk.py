@@ -131,10 +131,11 @@ class TwilightVK:
                 self.__bot__.stop()
             self.logger.info(f"{FG.RED}Framework has been stopped{STYLE.RESET}")
             await asyncio.sleep(0.1)
-            if self._state not in [TwiVKStates.ERROR]:
-                self._state = TwiVKStates.DISABLED
             if self._api:
                 await self._api.stop()
+            if self._state not in [TwiVKStates.ERROR]:
+                self._state = TwiVKStates.DISABLED
+            exit(0)
 
 
     def start(self):
