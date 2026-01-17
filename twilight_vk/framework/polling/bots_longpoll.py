@@ -21,9 +21,9 @@ from ...utils.event_loop import TwiTaskManager
 class BotsLongPoll(BaseLongPoll):
 
     def __init__(self,
-                 access_token:str=None,
-                 group_id:int=None,
-                 api_version:str=CONFIG.VK_API.version,
+                 access_token: str,
+                 group_id: int = None,
+                 api_version: str = CONFIG.VK_API.version,
                  loop_wrapper: TwiTaskManager = None) -> None:
         '''
         BotLongPoll provides a communication between your app and VK API
@@ -69,6 +69,12 @@ class BotsLongPoll(BaseLongPoll):
 
         try:
             self.logger.debug(f"Authorization...")
+
+            if not self.__group_id__:
+                self.logger.debug(f"Getting group_id by access_token...")
+                response = await self.vk_methods.groups.getById()
+                self.__group_id__ = response["response"]["groups"][0]["id"]
+                self.logger.debug(f"Group ID has been recieved. Group ID: {self.__group_id__}")
 
             self.logger.debug(f"Getting Bots LongPoll Server...")
             response = await self.vk_methods.groups.getLongPollServer()
