@@ -21,9 +21,9 @@ from ...utils.event_loop import TwiTaskManager
 class BotsLongPoll(BaseLongPoll):
 
     def __init__(self,
-                 access_token:str=None,
-                 group_id:int=None,
-                 api_version:str=CONFIG.VK_API.version,
+                 access_token: str,
+                 group_id: int = None,
+                 api_version: str = CONFIG.VK_API.version,
                  loop_wrapper: TwiTaskManager = None) -> None:
         '''
         BotLongPoll provides a communication between your app and VK API
@@ -38,22 +38,29 @@ class BotsLongPoll(BaseLongPoll):
         :param api_version: version of VK API, by default its grabbed from DarkyVK's configuration
         :type api_version: str | None
         '''
+        self.logger = logging.getLogger(self.__class__.__name__.lower())
+
         self.__stop__ = False
         self.authorized = False
+
         self.httpValidator = HttpValidator()
         self.eventValidator = EventValidator()
         self.httpClient = Http()
-        self.logger = logging.getLogger(self.__class__.__name__.lower())
+        
         self.__access_token__ = access_token
         self.__group_id__ = group_id
+        
         self.__api_url__ = CONFIG.VK_API.url
         self.__api_version__ = api_version
+
         self.__server__ = None
         self.__key__ = None
         self.__ts__ = None
         self.__wait__ = CONFIG.VK_API.wait
+
         self.base_methods = VkBaseMethods(self.__api_url__, self.__access_token__, self.__group_id__)
         self.vk_methods = VkMethods(self.base_methods)
+
         self._loop_wrapper = loop_wrapper if loop_wrapper is not None else TwiTaskManager()
         self._router = EventRouter(self.vk_methods, _loop_wrapper=self._loop_wrapper)
         self.on_event = self._router.on_event
@@ -69,6 +76,18 @@ class BotsLongPoll(BaseLongPoll):
 
         try:
             self.logger.debug(f"Authorization...")
+
+            if not self.__group_id__:
+                self.logger.debug(f"The group ID is not set. Getting group ID by the access token...")
+                response = await self.vk_methods.groups.getById()
+                self.__group_id__ = response["response"]["groups"][0]["id"]
+                self.logger.debug(f"Group ID has been recieved. Group ID: {self.__group_id__}")
+
+                self.logger.debug(f"Reinitializing VkMethods class...")
+                self.base_methods = VkBaseMethods(self.__api_url__, self.__access_token__, self.__group_id__)
+                self.vk_methods = VkMethods(self.base_methods)
+                self._router.vk_methods = self.vk_methods
+                self.logger.debug(f"VkMethods has been reinitialized")
 
             self.logger.debug(f"Getting Bots LongPoll Server...")
             response = await self.vk_methods.groups.getLongPollServer()

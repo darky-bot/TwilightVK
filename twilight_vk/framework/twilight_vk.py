@@ -57,8 +57,8 @@ class TwilightVK:
         self.logger.info(f"Initializing framework...")
 
         try:
-            if not ACCESS_TOKEN or not GROUP_ID:
-                raise InitializationError(ACCESS_TOKEN, GROUP_ID)
+            if not ACCESS_TOKEN:
+                raise InitializationError(ACCESS_TOKEN)
         except InitializationError as ex:
             self.logger.critical(f"Initialization error{ex}")
             exit()
