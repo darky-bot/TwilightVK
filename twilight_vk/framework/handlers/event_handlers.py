@@ -142,9 +142,9 @@ class BASE_EVENT_HANDLER:
         :type in_gather: bool
         '''
         self.logger.debug(f"{self.__class__.__name__} is working right now...")
-        
+        self.logger.debug(f"Handling mode: {"all in one" if in_gather else "one after one"}")
+
         if in_gather:
-            self.logger.debug(f"Handling mode: {"all in one" if in_gather else "one after one"}")
             await asyncio.gather(
                 *(self._callFunc(handler, event) for handler in self._funcs),
                 return_exceptions=False

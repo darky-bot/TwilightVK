@@ -16,8 +16,7 @@ class FrameworkError(Exception):
 class InitializationError(FrameworkError):
     
     def __init__(self,
-                 access_token:str,
-                 group_id:int):
+                 access_token:str):
         '''
         Ошибка инициализации класса TwilightVK
 
@@ -28,9 +27,7 @@ class InitializationError(FrameworkError):
         :type access_token: int
         '''
         self.__accessToken__ = access_token
-        self.__groupId__ = group_id
     
     def __str__(self):
         return \
-        f"{f" : ACCESS_TOKEN is None or empty" if not self.__accessToken__ else ""}"\
-        f"{f" : GROUP_ID is None or empty" if not self.__groupId__ else ""}"
+        f"{f" : ACCESS_TOKEN is None or empty" if not self.__accessToken__ else ""}"
