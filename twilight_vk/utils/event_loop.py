@@ -21,20 +21,33 @@ class TwiTaskManager:
         self._tasks: list[asyncio.Task] = tasks
         self._loop: asyncio.AbstractEventLoop = asyncio.get_event_loop() if loop is None else loop
         
-    def _signal_handlers_init(self):
+    def _setup_sigterm_handler(self):
         '''
         SIGTERM event handler for graceful stopping
         '''
         try:
             self._loop.add_signal_handler(signal.SIGTERM,
-                                          lambda: asyncio.create_task(self._astop()))
+                                          lambda: asyncio.create_task(self._handle_sigterm()))
             self.logger.debug("Signal handler installed for SIGTERM")
         except NotImplementedError:
             self.logger.warning("add_signal_handler is not supported, using default hanlders")
             signal.signal(signal.SIGTERM,
-                          self.stop)
+                          lambda: asyncio.create_task(self._handle_sigterm()))
+        
+    async def _handle_sigterm(self):
+        '''
+        Handles the SIGTERM signal
+        '''
+        self.logger.debug("SIGTERM recieved, cancelling the tasks...")
+        tasks = asyncio.all_tasks(self._loop)
 
-    
+        for task in tasks:
+            if not task.done():
+                task.cancel()
+        
+        asyncio.gather(*tasks, return_exceptions=True)
+        
+
     def get_loop(self) -> asyncio.AbstractEventLoop:
         '''
         Returns a loop if it was created
@@ -52,7 +65,7 @@ class TwiTaskManager:
         '''
         self.logger.debug(f"Loop was started with {len(self._tasks)} tasks")
 
-        self._signal_handlers_init()
+        self._setup_sigterm_handler()
 
         while self._tasks:
             self._loop.create_task(self._tasks.pop(0))
@@ -76,22 +89,13 @@ class TwiTaskManager:
         except KeyboardInterrupt:
             self.logger.warning("KeyboardInterrupt recieved, shutting down...")
             self.stop(_all_tasks)
+
         except asyncio.CancelledError:
-            self.logger.warning("Tasks was cancelled probably by SIGTERM")
+            self.logger.warning("SIGTERM was recieved, shutting down...")
+            self.stop(_all_tasks)
 
         finally:
             self.close()
-        
-    async def _astop(self):
-        
-        self.logger.warning("SIGTERM recieved, shutting down...")
-        tasks = asyncio.all_tasks(self._loop)
-
-        for task in tasks:
-            if not task.done():
-                task.cancel()
-            
-        asyncio.gather(*tasks, return_exceptions=True)
 
     def stop(self, tasks: list[asyncio.Task] = None):
         '''
