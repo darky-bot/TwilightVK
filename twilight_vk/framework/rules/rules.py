@@ -86,8 +86,12 @@ class TextRule(BaseRule):
 
     async def check(self, event: dict) -> bool:
         text:str = event["object"]["message"]["text"]
-        return (text.lower() if self.ignore_case else text) in \
-            ([val.lower() if self.ignore_case else self.value for val in self.value])
+
+        if self.ignore_case:
+            text = text.lower()
+            self.value = [val.lower() for val in self.value]
+
+        return text in self.value
 
 
 class TwiMLRule(BaseRule):
