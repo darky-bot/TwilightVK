@@ -5,7 +5,7 @@ import logging
 import asyncio
 
 from ..rules import *
-from ...utils.types.response import ResponseHandler
+from ...framework.handlers.output_handlers import ResponseHandler
 from ..exceptions.handler import (
     ResponseHandlerError
 )

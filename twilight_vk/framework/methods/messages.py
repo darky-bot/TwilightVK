@@ -21,9 +21,9 @@ class Messages(BaseMethodsGroup):
         '''
         values = {
             "peer_id": peer_id,
-            "offset": abs(offset) if offset is not None else None,
-            "count": abs(count) if count is not None else None,
-            "extended": "true" if extended else "false",
+            "offset": offset,
+            "count": count,
+            "extended": extended,
             "fields": fields,
             "group_id": abs(group_id) if group_id is not None else self.__group_id__,
             "v": self.__api_version__
@@ -42,8 +42,8 @@ class Messages(BaseMethodsGroup):
         (см. https://dev.vk.ru/ru/method/messages.getConversationsById)
         '''
         values = {
-            "peer_ids": ",".join([f"{pid}" for pid in peer_ids]) if isinstance(peer_ids, list) else f"{peer_ids}",
-            "extended": "true" if extended else "false",
+            "peer_ids": peer_ids,
+            "extended": extended,
             "fields": fields,
             "group_id": abs(group_id) if group_id is not None else self.__group_id__,
             "v": self.__api_version__
@@ -62,7 +62,7 @@ class Messages(BaseMethodsGroup):
         (см. https://dev.vk.ru/ru/method/messages.removeChatUser)
         '''
         values = {
-            "chat_id": abs(chat_id),
+            "chat_id": chat_id,
             "user_id": user_id,
             "member_id": member_id,
             "v": self.__api_version__
@@ -105,27 +105,27 @@ class Messages(BaseMethodsGroup):
             "user_id": user_id,
             "random_id": randint(0, 1000000000),
             "peer_id": peer_id,
-            "peer_ids": ",".join([f"{pid}" for pid in peer_ids]) if isinstance(peer_ids, list) else f"{peer_ids}",
+            "peer_ids": peer_ids,
             "domain": domain,
             "chat_id": chat_id,
-            "user_ids": ",".join([f"{uid}" for uid in user_ids]) if isinstance(user_ids, list) else f"{user_ids}",
+            "user_ids": user_ids,
             "message": message,
             "lat": lat,
             "long": long,
-            "attachment": ",".join([f"{attach}" for attach in attachment]) if attachment is not None else None,
+            "attachment": attachment,
             "reply_to": reply_to,
             "forward_messages": forward_messages,
             "forward": forward,
-            "sticker_id": abs(sticker_id) if sticker_id is not None else None,
+            "sticker_id": sticker_id,
             "group_id": abs(group_id) if group_id is not None else self.__group_id__,
-            "keyboard": keyboard if isinstance(keyboard, str) else f"{keyboard.getMarkup()}".replace("'", "\"").replace("True", "true").replace("False", "false") if keyboard is not None else None,
+            "keyboard": keyboard,
             "template": template,
             "payload": payload,
             "content_source": content_source,
-            "dont_parse_links": "true" if dont_parse_links else "false",
-            "disable_mentions": "true" if disable_mentions else "false",
+            "dont_parse_links": dont_parse_links,
+            "disable_mentions": disable_mentions,
             "intent": intent,
-            "subscribe_id": abs(subsribe_id) if subsribe_id is not None else None,
+            "subscribe_id": subsribe_id,
             "v": self.__api_version__
         }
         response = await self.base_api.base_get_method(api_method=f"{self.method}.send",

@@ -8,6 +8,9 @@ from ...logger.darky_logger import DarkyLogger
 from ...utils.config import CONFIG
 from ..validators.http_validator import HttpValidator
 from ..validators.event_validator import EventValidator
+from ..validators import (
+    RequestValidator
+)
 
 class VkBaseMethods:
 
@@ -31,11 +34,11 @@ class VkBaseMethods:
             headers:dict={},
             validate:bool=True
             ) -> ClientResponse:
-        valid_values = {}
-        for key, value in values.items():
-            if value not in ['', None, 'None']:
-                valid_values[key] = value
+        
+        valid_values = await RequestValidator.validate(values)
+
         headers = headers | self.httpClientHeaders
+
         self.logger.debug(f"Calling HTTP-GET {api_method} method with {valid_values} {headers if headers != {} else ""}...")
         response = await self.httpClient.get(url=f"{self.__url__}/method/{api_method}",
                                             params=valid_values,
@@ -56,11 +59,11 @@ class VkBaseMethods:
             headers:dict={},
             validate:bool=True
             ) -> ClientResponse:
-        valid_values = {}
-        for key, value in values.items():
-            if value not in ['', None]:
-                valid_values[key] = value
+        
+        valid_values = valid_values = await RequestValidator.validate(values)
+
         headers = headers | self.httpClientHeaders
+
         self.logger.debug(f"Calling HTTP-POST {api_method} method with {valid_values} {headers if headers != {} else ""}:{data}...")
         response = await self.httpClient.post(url=f"{self.__url__}/method/{api_method}",
                                             params=valid_values,

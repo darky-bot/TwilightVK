@@ -114,6 +114,16 @@ class CONFIG:
                         "level": "INIT",
                         "propagate": True
                     },
+                    "reqst-validator": {
+                        "handlers": ["console", "file"],
+                        "level": "INIT",
+                        "propagate": True
+                    },
+                    "resp-validator": {
+                        "handlers": ["console", "file"],
+                        "level": "INIT",
+                        "propagate": True
+                    },
                     "event-router": {
                         "handlers": ["console", "file"],
                         "level": "INIT",
