@@ -1,6 +1,10 @@
+from typing import TYPE_CHECKING
 from random import randint
 
 from .base import BaseMethodsGroup
+
+if TYPE_CHECKING:
+    from ... import KeyboardMarkup
 
 class Messages(BaseMethodsGroup):
 
@@ -83,7 +87,7 @@ class Messages(BaseMethodsGroup):
                    forward: dict = None,
                    sticker_id: int = None,
                    group_id: int | None = None,
-                   keyboard: object = None,
+                   keyboard: 'KeyboardMarkup' = None,
                    template: object = None,
                    payload: object = None,
                    content_source: dict = None,
@@ -114,7 +118,7 @@ class Messages(BaseMethodsGroup):
             "forward": forward,
             "sticker_id": abs(sticker_id) if sticker_id is not None else None,
             "group_id": abs(group_id) if group_id is not None else self.__group_id__,
-            "keyboard": keyboard,
+            "keyboard": keyboard if isinstance(keyboard, str) else f"{keyboard.getMarkup()}".replace("'", "\"").replace("True", "true").replace("False", "false") if keyboard is not None else None,
             "template": template,
             "payload": payload,
             "content_source": content_source,

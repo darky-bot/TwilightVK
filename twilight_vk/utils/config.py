@@ -7,7 +7,7 @@ from ..logger.formatters import (
 class CONFIG:
 
     class FRAMEWORK:
-        version = "0.1.0-beta3"
+        version = "0.1.0-beta4"
         developer = "darky_wings"
     
     class VK_API:
@@ -130,6 +130,11 @@ class CONFIG:
                         "propagate": True
                     },
                     "loop-manager": {
+                        "handlers": ["console", "file"],
+                        "level": "INIT",
+                        "propagate": True
+                    },
+                    "keyboard": {
                         "handlers": ["console", "file"],
                         "level": "INIT",
                         "propagate": True
