@@ -21,27 +21,28 @@ class KeyboardButton:
         Базовый класс кнопки для клавиатуры, поддерживающий все параметры для универсальной конфигурации
         (см. https://dev.vk.ru/ru/api/bots/development/keyboard#Типы%20кнопок)
         '''
-        self._type = type
+        self._type: str = type
 
-        self._label = None
-        self._payload = None
+        self._label: str = None
+        self._payload: str = None
 
         if label:
             if len(label) > 40:
                 logger.warning(f"The maximum length of the label is 40 characters. Label will be cut off to the limits")
-            self._label: str = label[:40]
+            self._label: str = f"{label[:37]}..."
 
         if payload:
             if len(payload) > 255:
-                logger.warning(f"The maximum length of the payload is 255 characters. Payload will be cut off to the limits")
-            self._payload: str = payload[:255]
+                logger.error(f"The maximum length of the payload is 255 characters.")
+                raise ValueError("payload's length should be less than 255 characters.")
+            self._payload: str = payload
 
-        self._hash = hash
-        self._link = link
-        self._app_id = app_id
-        self._owner_id = owner_id
+        self._hash: str = hash
+        self._link: str = link
+        self._app_id: int = app_id
+        self._owner_id: int = owner_id
 
-        self._color = color
+        self._color: str = color
 
         logger.debug(f"Generating keyboard button's markup with type: {self._type}")
         
