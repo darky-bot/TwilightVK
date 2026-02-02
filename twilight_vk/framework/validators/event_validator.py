@@ -32,7 +32,7 @@ class EventValidator:
 
         _content_type = response.headers.get('Content-Type', None)
 
-        if not _content_type or _content_type != 'application/json':
+        if not _content_type or 'application/json' not in _content_type:
             logger.error(f"Response doesn't have JSON content")
             return False
         
