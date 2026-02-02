@@ -3,7 +3,6 @@ from ...utils.twiml import TwiML
 from ...utils.types.event_types import MessageActionTypes
 
 class TrueRule(BaseRule):
-
     '''
     Возвращает всегда True
     Правило сделано в основном для теста
@@ -12,7 +11,6 @@ class TrueRule(BaseRule):
         return True
 
 class FalseRule(BaseRule):
-
     '''
     Возвращает всегда False
     Правило сделано в основном для теста
