@@ -12,14 +12,14 @@ class Http:
         self.headers = headers
         self.timeout = timeout
     
-    async def __getSession__(self):
+    async def _get_session(self):
         if self.session is None:
             self.session = ClientSession(headers=self.headers,
                                          timeout=ClientTimeout(self.timeout),
                                          connector=TCPConnector(force_close=True))
         
     @staticmethod
-    async def __isRaw__(response:ClientResponse, raw:bool=False):
+    async def _is_raw(response:ClientResponse, raw:bool=False):
         if raw:
             return response
         return await response.json()
@@ -44,11 +44,11 @@ class Http:
         :param raw: Defines the raw/json response
         :type raw: bool
         '''
-        await self.__getSession__()
+        await self._get_session()
         response = await self.session.get(url=url,
                                           params=params,
                                           headers=headers)
-        return await self.__isRaw__(response, raw=raw)
+        return await self._is_raw(response, raw=raw)
     
     async def post(self,
                    url:str,
@@ -71,12 +71,12 @@ class Http:
         :param raw: Defines the raw/json response
         :type raw: bool
         '''
-        await self.__getSession__()
+        await self._get_session()
         response = await self.session.post(url=url,
                                            params=params,
                                            json=data,
                                            headers=headers)
-        return await self.__isRaw__(response, raw=raw)
+        return await self._is_raw(response, raw=raw)
     
     async def close(self):
         if self.session is not None and not self.session.closed:

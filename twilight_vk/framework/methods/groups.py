@@ -11,7 +11,7 @@ class Groups(BaseMethodsGroup):
         (см. https://dev.vk.com/ru/method/groups.getById)
         '''
         values = {
-            "group_ids": ",".join([f"{_group_id}" for _group_id in group_ids]) if isinstance(group_ids, list) else f"{group_ids}",
+            "group_ids": group_ids,
             "group_id": abs(group_id) if group_id is not None else self.__group_id__,
             "fields": fields,
             "v": self.__api_version__

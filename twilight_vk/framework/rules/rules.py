@@ -3,7 +3,6 @@ from ...utils.twiml import TwiML
 from ...utils.types.event_types import MessageActionTypes
 
 class TrueRule(BaseRule):
-
     '''
     Возвращает всегда True
     Правило сделано в основном для теста
@@ -12,7 +11,6 @@ class TrueRule(BaseRule):
         return True
 
 class FalseRule(BaseRule):
-
     '''
     Возвращает всегда False
     Правило сделано в основном для теста
@@ -86,8 +84,12 @@ class TextRule(BaseRule):
 
     async def check(self, event: dict) -> bool:
         text:str = event["object"]["message"]["text"]
-        return (text.lower() if self.ignore_case else text) in \
-            ([val.lower() if self.ignore_case else self.value for val in self.value])
+
+        if self.ignore_case:
+            text = text.lower()
+            self.value = [val.lower() for val in self.value]
+
+        return text in self.value
 
 
 class TwiMLRule(BaseRule):

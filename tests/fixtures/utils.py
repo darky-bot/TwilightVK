@@ -1,6 +1,20 @@
-import pytest
+import asyncio
 
+import pytest
+import pytest_asyncio
+
+from twilight_vk.utils.event_loop import TwiTaskManager
 from twilight_vk.utils.twiml import TwiML
+
+@pytest_asyncio.fixture
+def loop(_function_event_loop):
+    _wrapper = TwiTaskManager(loop = _function_event_loop)
+    yield _wrapper
+
+@pytest.fixture
+def log_fixture(caplog):
+    caplog.set_level(0)
+    return caplog
 
 @pytest.fixture
 def twiml():
@@ -36,14 +50,6 @@ def parse_dataset():
             [None, None, None, None, {"user": "darky", "testword": "21"}, {"user": "darky", "testword": "darky"}, {"user": "darky abc", "testword": "efg"}]
         ]
     }
-
-@pytest.mark.asyncio
-async def test_parse(twiml: TwiML, parse_dataset: dict):
-    for _temp in range(6):
-        twiml.update_template(parse_dataset.get("templates")[_temp])
-        for _msg in range(7):
-            result = await twiml.parse(parse_dataset.get("messages")[_msg])
-            assert result == parse_dataset.get("results")[_temp][_msg]
 
 @pytest.fixture
 def mentions_dataset():
@@ -84,9 +90,3 @@ def mentions_dataset():
             ]}
         ]
     }
-
-@pytest.mark.asyncio
-async def test_extract_mentions(twiml: TwiML, mentions_dataset: dict):
-    for _msg in range(13):
-        mentions = await twiml.extract_mentions(mentions_dataset.get("messages")[_msg])
-        assert mentions == mentions_dataset.get("results")[_msg]

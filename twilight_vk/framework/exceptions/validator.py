@@ -44,8 +44,8 @@ class HttpValidationError(ValidationError):
     
     def __str__(self):
         return f"Response validation error"\
-        f"{": Is not valid raw " if self.isRaw is None else ""}"\
-        f"{": Status code is not success " if self.isSuccess is None else ""}"
+        f"{": Is not valid raw " if not self.isRaw else ""}"\
+        f"{": Status code is not success " if not self.isSuccess else ""}"
 
 class EventValidationError(ValidationError):
 
@@ -72,5 +72,5 @@ class EventValidationError(ValidationError):
 
     def __str__(self):
         return f"Response validation error"\
-        f"{": Content is not JSON " if self.jsonIsValid is None else ""}"\
-        f"{": Response doesn't contain the required fields " if self.fieldsAreValid is None else ""}"
+        f"{": Content is not JSON " if not self.jsonIsValid else ""}"\
+        f"{": Response doesn't contain the required fields " if not self.fieldsAreValid else ""}"

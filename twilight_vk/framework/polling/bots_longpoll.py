@@ -13,8 +13,10 @@ from ...utils.config import CONFIG
 from ..methods.base import VkBaseMethods
 from ..methods import VkMethods
 from ..handlers import EventRouter
-from ..validators.http_validator import HttpValidator
-from ..validators.event_validator import EventValidator
+from ..validators import (
+    HttpValidator,
+    EventValidator
+)
 from ...http.async_http import Http
 from ...utils.event_loop import TwiTaskManager
 
@@ -43,8 +45,6 @@ class BotsLongPoll(BaseLongPoll):
         self.__stop__ = False
         self.authorized = False
 
-        self.httpValidator = HttpValidator()
-        self.eventValidator = EventValidator()
         self.httpClient = Http()
         
         self.__access_token__ = access_token
@@ -129,8 +129,8 @@ class BotsLongPoll(BaseLongPoll):
                                             },
                                             raw=True)
             self.logger.debug(f"Validating...")
-            response = await self.httpValidator.validate(response)
-            response = await self.eventValidator.validate(response, from_polling=True)
+            response = await HttpValidator.validate(response)
+            response = await EventValidator.validate(response, from_polling=True)
             self.logger.debug(f"Got an event: {response}")
 
             if "ts" not in response:

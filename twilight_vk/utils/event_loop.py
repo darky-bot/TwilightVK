@@ -91,7 +91,7 @@ class TwiTaskManager:
             self.stop(_all_tasks)
 
         except asyncio.CancelledError:
-            self.logger.warning("SIGTERM was recieved, shutting down...")
+            self.logger.warning("Tasks was cancelled")
             self.stop(_all_tasks)
 
         finally:
