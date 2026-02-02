@@ -5,7 +5,8 @@ import logging
 import asyncio
 
 from ..rules import *
-from ...framework.handlers.output_handlers import ResponseHandler
+from ...utils.types.response import Response
+from ..validators import ResponseValidator
 from ..exceptions.handler import (
     ResponseHandlerError
 )
@@ -101,15 +102,25 @@ class BASE_EVENT_HANDLER:
    
     async def _handleOutput(self,
                                func,
-                               callback: str|ResponseHandler,
-                               event):
+                               callback: 'str | Response',
+                               event: dict):
         '''
         Handles the output from functions which was added to handler
+        '''    
+        self.logger.debug(f"Handling response for {self.__class__.__name__}.{func.__name__}...")
 
-        :param callback: Function's output
-        :type callback: str | ResponseHandler
-        '''
-        self.logger.warning("Output handler is empty. Will be skipped.")
+        if callback is None:
+            self.logger.debug(f"Callback is None. Output handling was skipped")
+            return True
+        
+        callback = await ResponseValidator.validate(callback,
+                                                    event)
+        
+        if isinstance(callback, Response):
+            response = await self.vk_methods.messages.send(**callback.getData())
+            return response
+        
+        raise ResponseHandlerError(callback, isinstance(callback, Response | None))
         
     async def _callFunc(self, handler:dict, event:dict):
         '''
@@ -153,62 +164,3 @@ class BASE_EVENT_HANDLER:
                 await self._callFunc(handler, event)
 
         self.logger.debug(f"{self.__class__.__name__} is finished handling the event")
-
-
-class MESSAGE_LIKE_HANDLER(BASE_EVENT_HANDLER):
-    
-    async def _handleOutput(self,
-                               func,
-                               callback:str|ResponseHandler,
-                               event):
-        '''
-        Handles the output from functions which was added to handler
-
-        :param callback: Function's output
-        :type callback: str | ResponseHandler
-        '''    
-        self.logger.debug(f"Handling response for {self.__class__.__name__}.{func.__name__}...")
-
-        if callback is None:
-            self.logger.debug(f"Callback is None. Output handling was skipped")
-            return True
-
-        if isinstance(callback, str):
-            callback = ResponseHandler(
-                peer_ids=event["object"]["message"]["peer_id"],
-                message=callback,
-                forward={
-                    "peer_id": event["object"]["message"]["peer_id"],
-                    "conversation_message_ids": event["object"]["message"]["conversation_message_id"],
-                    "is_reply": True
-                }
-            )
-        if isinstance(callback, ResponseHandler):
-            response = await self.vk_methods.messages.send(**callback.getData())
-            return response
-        raise ResponseHandlerError(callback, isinstance(callback, ResponseHandler | None))
-    
-
-
-class NOT_MESSAGE_LIKE_HANDLER(BASE_EVENT_HANDLER):
-
-    async def _handleOutput(self,
-                               func,
-                               callback:str|ResponseHandler,
-                               event):
-        '''
-        Handles the output from functions which was added to handler
-
-        :param callback: Function's output
-        :type callback: str | ResponseHandler
-        '''    
-        self.logger.debug(f"Handling response for {self.__class__.__name__}.{func.__name__}...")
-
-        if callback is None:
-            self.logger.debug(f"Callback is None. Output handling was skipped")
-            return True
-        
-        if isinstance(callback, ResponseHandler):
-            response = await self.vk_methods.messages.send(**callback.getData())
-            return response
-        raise ResponseHandlerError(callback, isinstance(callback, ResponseHandler | None))

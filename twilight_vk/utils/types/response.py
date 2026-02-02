@@ -1,6 +1,6 @@
 import json
 
-class ResponseHandler:
+class Response:
 
     def __init__(self,
                  peer_ids: int | list[int] = None,
@@ -21,11 +21,9 @@ class ResponseHandler:
                  dont_parse_links: bool = None,
                  disable_mentions: bool = None):
         '''
-        Allows to send responses for the bot
-
-
+        Allows to convert str to OutputHandler
         '''
-        self.peer_ids = ",".join([f"{peer_id}" for peer_id in peer_ids]) if isinstance(peer_ids, list) else f"{peer_ids}"
+        self.peer_ids = peer_ids
         self.domain = domain
         self.chat_id = chat_id
         self.message = message
@@ -33,18 +31,18 @@ class ResponseHandler:
         self.lat = lat
         self.long = long
 
-        self.attachment = attachment = ",".join([f"{attach}" for attach in attachment]) if attachment is not None else None
+        self.attachment = attachment
 
         self.reply_to = reply_to
         self.forward_messages = forward_messages
-        self.forward = json.dumps(forward) if forward is not None else None
+        self.forward = forward
 
         self.sticker_id = sticker_id
         
         self.keyboard = keyboard
         self.template = template
         self.payload = payload
-        self.content_source = json.dumps(content_source) if content_source is not None else None
+        self.content_source = content_source
         self.dont_parse_links = dont_parse_links
         self.disable_mentions = disable_mentions
     
