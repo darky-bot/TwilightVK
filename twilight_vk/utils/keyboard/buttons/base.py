@@ -29,7 +29,8 @@ class KeyboardButton:
         if label:
             if len(label) > 40:
                 logger.warning(f"The maximum length of the label is 40 characters. Label will be cut off to the limits")
-            self._label: str = f"{label[:37]}..."
+                self._label: str = f"{label[:37]}..."
+            self._label: str = f"{label}"
 
         if payload:
             if len(payload) > 255:
