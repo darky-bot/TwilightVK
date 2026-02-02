@@ -20,7 +20,7 @@ class RequestValidator:
             return json.dumps(value)
 
         if isinstance(value, list):
-            return ",".join(value)
+            return ",".join([f"{val}" for val in value])
         
         if isinstance(value, str):
             return f"{value}"

@@ -1,14 +1,12 @@
 import logging
 
 from aiohttp import ClientResponse
-from fastapi import APIRouter
 
 from ...http.async_http import Http
-from ...logger.darky_logger import DarkyLogger
 from ...utils.config import CONFIG
-from ..validators.http_validator import HttpValidator
-from ..validators.event_validator import EventValidator
 from ..validators import (
+    HttpValidator,
+    EventValidator,
     RequestValidator
 )
 
@@ -21,8 +19,6 @@ class VkBaseMethods:
         self.__url__ = url
         self.__token__ = token
         self.__group__ = group
-        self.httpValidator = HttpValidator()
-        self.eventValidator = EventValidator()
         self.httpClientHeaders = {"Authorization": f"Bearer {token}"}
         self.httpClient = Http(self.httpClientHeaders)
         self.logger = logging.getLogger("vk-methods")
@@ -45,8 +41,8 @@ class VkBaseMethods:
                                             headers=headers,
                                             raw=True)
         if validate:
-            response = await self.httpValidator.validate(response)
-            response = await self.eventValidator.validate(response)
+            response = await HttpValidator.validate(response)
+            response = await EventValidator.validate(response)
 
         self.logger.debug(f"Response for {api_method}: {response if isinstance(response, dict) else f"{response.request_info} <{response.status}>"}")
         return response
@@ -71,8 +67,8 @@ class VkBaseMethods:
                                             headers=headers,
                                             raw=True)
         if validate:
-            response = await self.httpValidator.validate(response)
-            response = await self.eventValidator.validate(response)
+            response = await HttpValidator.validate(response)
+            response = await EventValidator.validate(response)
 
         self.logger.debug(f"Response for {api_method}: {response if isinstance(response, dict) else f"{response.request_info} <{response.status}>"}")
         return response
