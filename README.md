@@ -1,7 +1,7 @@
 ![Logo](/docs/SVG/logo-transparent.svg)
 
 <p align="center">
-    <img alt="Framework Version" src="https://img.shields.io/badge/Latest_version-v0.1.0b4-A04?style=flat-square">
+    <img alt="Framework Version" src="https://img.shields.io/badge/Latest_version-v0.1.0b5-A04?style=flat-square">
     <img alt="Python Version" src="https://img.shields.io/badge/Python-3.12-purple?style=flat-square">
     <img alt="PyPi" src="https://img.shields.io/pypi/v/twilight_vk?color=04A&label=PyPI&style=flat-square">
     <img alt="Issues" src="https://img.shields.io/github/issues/darky-bot/TwilightVK?style=flat-square">
