@@ -17,8 +17,5 @@
 + + + [Описание методов API]()
 + TwiManager
 + + [Работа с TwiManager]()
-+ TwiDatabase
-+ + [Работа с TwiDatabase]()
-+ + + [Описание методов TwiDatabase]()
 + [Логгирование]()
 + [Использование методов VK API]()
