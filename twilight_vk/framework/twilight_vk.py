@@ -1,6 +1,6 @@
 import asyncio
 
-from ..api.twilight_api import TwilightAPI
+from ..api.twilight_api import TwiAPI
 from .api import FrameworkRouter
 from .polling.bots_longpoll import BotsLongPoll
 from ..logger.darky_logger import DarkyLogger
@@ -82,12 +82,12 @@ class TwilightVK:
 
         self.api_router = FrameworkRouter(self)
 
-        self._api: TwilightAPI = None
+        self._api: TwiAPI = None
 
         if api_enabled:
             self.logger.warning("Twilight API is under development yet")
         if False:
-            self._api = TwilightAPI(
+            self._api = TwiAPI(
                 BOTS = [self],
                 HOST = HOST,
                 PORT = PORT,
