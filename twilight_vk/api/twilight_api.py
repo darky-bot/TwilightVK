@@ -21,7 +21,7 @@ ASSETS = BASE_DIR / "assets"
 
 Visual.ansi()
 
-class TwilightAPI:
+class TwiAPI:
 
     def __init__(self,
                  BOTS: object | list[object] = [],
@@ -48,10 +48,10 @@ class TwilightAPI:
         
         self.logger.info(f"Initializing API...")
 
-        self.__HOST__ = HOST
-        self.__PORT__ = PORT
+        self._HOST = HOST
+        self._PORT = PORT
 
-        self.__api__ = FastAPI(
+        self._api = FastAPI(
             title=CONFIG.API.title,
             description=CONFIG.API.description,
             version=CONFIG.API.version,
@@ -65,14 +65,14 @@ class TwilightAPI:
         self._loop_wrapper = TwiTaskManager() if loop_wrapper is None else loop_wrapper
 
         self._uvicorn_config = uvicorn.Config(
-                app=self.__api__,
-                host=self.__HOST__,
-                port=self.__PORT__,
+                app=self._api,
+                host=self._HOST,
+                port=self._PORT,
                 log_config=CONFIG.LOGGER,
             )
         
         if _need_root_router:
-            self.__api__.include_router(RootRouter(self.bots, self).get_router())
+            self._api.include_router(RootRouter(self.bots, self).get_router())
 
         self.router = APIRouter(
             tags=["Server"]
@@ -81,15 +81,15 @@ class TwilightAPI:
                                   include_in_schema=False)
         self.router.add_api_route(path="/docs", endpoint=self.custom_swagger, methods=["GET"],
                                   include_in_schema=False)
-        self.__api__.include_router(self.router)
+        self._api.include_router(self.router)
 
-        self.logger.debug(f"Importing bot's API routers...")
-        for bot in self.bots:
-            self.logger.debug(f"Importing API routers from {bot.__class__.__name__}<{self.bots.index(bot)}> - {bot.bot_name}...")
-            self.__api__.include_router(bot.__getApiRouters__())
-        
-        if not self.bots:
-            self.logger.warning(f"There is no connected bots to the API")
+        # self.logger.debug(f"Importing bot's API routers...")
+        # for bot in self.bots:
+        #     self.logger.debug(f"Importing API routers from {bot.__class__.__name__}<{self.bots.index(bot)}> - {bot.bot_name}...")
+        #     self._api.include_router(bot.__getApiRouters__())
+        #
+        # if not self.bots:
+        #     self.logger.warning(f"There is no connected bots to the API")
         
         self._state = TwiAPIStates.DISABLED
         self.logger.info(f"API initialized")
@@ -159,7 +159,8 @@ class TwilightAPI:
             except asyncio.TimeoutError:
                 self.logger.warning("Force stopping API after timeout")
             
-            self.logger.debug("Shutting down complete")
+        self.logger.info("Shutting down complete")
+        exit(0)
     
     #---
     #API METHODS
@@ -176,8 +177,8 @@ class TwilightAPI:
         THIS IS API METHOD
         '''
         return get_swagger_ui_html(
-            openapi_url=self.__api__.openapi_url,
-            title = f"{self.__api__.title} - Swagger UI",
+            openapi_url=self._api.openapi_url,
+            title = f"{self._api.title} - Swagger UI",
             swagger_favicon_url="/favicon.ico"
         )
     
