@@ -58,7 +58,7 @@ class BaseRule:
             self.logger.error(f"Got an error while linking", exc_info=True)
             return False
     
-    async def _check(self, event: dict) -> bool:
+    async def _check(self, event: dict) -> bool | dict:
         '''
         The shell for Rule.check()
         Allows to logging
@@ -72,7 +72,7 @@ class BaseRule:
             self.logger.error(f"Rule {self.__class__.__name__} returned an exception", exc_info=True)
             return False
 
-    async def check(self, event: dict) -> bool:
+    async def check(self, event: dict) -> bool | dict:
         '''
         Main function with specific check logic for specific rule.
         It may be different in different rules
