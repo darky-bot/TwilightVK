@@ -7,6 +7,7 @@ from ..logger.darky_logger import DarkyLogger
 from ..logger.darky_visual import STYLE, FG
 from ..components.logo import LogoComponent
 from ..utils.config import CONFIG
+from ..utils.types.pollings import PollingTypes
 from ..utils.types.twi_states import TwiVKStates
 from ..utils.event_loop import TwiTaskManager
 from .exceptions.framework import (
@@ -16,74 +17,75 @@ from .exceptions.framework import (
 class TwilightVK:
 
     def __init__(self,
-                 BOT_NAME: str = None,
-                 ACCESS_TOKEN: str = None, 
-                 GROUP_ID: int = None, 
-                 API_VERSION: str = CONFIG.VK_API.version,
-                 API_MODE: str = "BOTSLONGPOLL",
-                 TWI_API_ENABLED: bool = True,
+                 bot_name: str = None,
+                 token: str = None, 
+                 group_id: int = None, 
+                 vk_api: str = CONFIG.VK_API.version,
+                 polling_type: str = PollingTypes.BOTSLONGPOLL,
+                 api_enabled: bool = True,
                  HOST: str = CONFIG.API.host,
                  PORT: str = CONFIG.API.port,
                  loop_wrapper: TwiTaskManager = None) -> None:
         '''
         Initializes TwilightVK
 
-        :param BOT_NAME: name of your bot
-        :type BOT_NAME: str
+        :param bot_name: name of your bot
+        :type bot_name: str
 
-        :param ACCESS_TOKEN: your group's access token, you can find it here(https://dev.vk.com/ru/api/access-token/community-token/in-community-settings)
-        :type ACCESS_TOKEN: str
+        :param token: your group's access token, you can find it here(https://dev.vk.com/ru/api/access-token/community-token/in-community-settings)
+        :type token: str
 
-        :param GROUP_ID: your group's id, you can find it in your group's settings
-        :type GROUP_ID: int
+        :param group_id: your group's id, you can find it in your group's settings
+        :type group_id: int
 
-        :param API_VERSION: version of VK API, by default its grabbed from the frameworks's default configuration
-        :type API_VERSION: str | None
+        :param vk_api: version of VK API, by default its grabbed from the frameworks's default configuration
+        :type vk_api: str | None
 
-        :param API_MODE: mode of polling (BOTSLONGPOLL/.../...)
-        :type API_MODE: str
+        :param polling_type: mode of polling (BOTSLONGPOLL/.../...)
+        :type polling_type: str
 
-        :param TWI_API_ENABLED: should be bot's api awailable
-        :type TWI_API_ENABLED: bool
+        :param api_enabled: should be bot's api awailable
+        :type api_enabled: bool
 
         :param loop_wrapper: Initialized class TwiTaskManager for async loop wrapping
         :type loop_wrapper: TwiTaskManager
         '''
         self._state = TwiVKStates.INITIALIZING
-        self.bot_name = self.__class__.__name__ if BOT_NAME is None else BOT_NAME
+        self.bot_name = self.__class__.__name__ if bot_name is None else bot_name
         self.logo = LogoComponent()
         self.logger = DarkyLogger(logger_name=f"twilight-vk", configuration=CONFIG.LOGGER)
 
         self.logger.info(f"Initializing framework...")
 
         try:
-            if not ACCESS_TOKEN:
-                raise InitializationError(ACCESS_TOKEN)
+            if not token:
+                raise InitializationError(token)
         except InitializationError as ex:
             self.logger.critical(f"Initialization error{ex}")
             exit()
 
-        self.__access_token__ = ACCESS_TOKEN
-        self.__group_id__ = GROUP_ID
-        self.__api_version__ = API_VERSION
+        self._token = token
+        self._group_id = group_id
+        self._vk_api = vk_api
 
         self._loop_wrapper = TwiTaskManager() if loop_wrapper is None else loop_wrapper
 
-        API_MODES = {
-            "BOTSLONGPOLL": BotsLongPoll(access_token=ACCESS_TOKEN,
-                                         group_id=GROUP_ID,
-                                         api_version=API_VERSION,
-                                         loop_wrapper=self._loop_wrapper)
+        polling_typeS = {
+            PollingTypes.BOTSLONGPOLL: BotsLongPoll(access_token=token,
+                                                    group_id=group_id,
+                                                    api_version=vk_api,
+                                                    loop_wrapper=self._loop_wrapper)
         }
-        self.__bot__ = API_MODES.get(API_MODE, "BOTSLONGPOLL")
-        self.methods = self.__bot__.vk_methods
-        self.on_event = self.__bot__._router.on_event
+        self._bot = polling_typeS.get(polling_type, PollingTypes.BOTSLONGPOLL)
+        self.methods = self._bot.vk_methods
+        self.on_event = self._bot._router.on_event
 
         self.api_router = FrameworkRouter(self)
 
         self._api: TwilightAPI = None
 
-        #if TWI_API_ENABLED:
+        if api_enabled:
+            self.logger.warning("Twilight API is under development yet")
         if False:
             self._api = TwilightAPI(
                 BOTS = [self],
@@ -92,7 +94,6 @@ class TwilightVK:
                 loop_wrapper = self._loop_wrapper,
                 _need_root_router = False
             )
-            self._loop_wrapper.add_task(self._api.run_server())
 
         self._state = TwiVKStates.DISABLED
         self.logger.info(f"Framework initialized")
@@ -105,18 +106,21 @@ class TwilightVK:
             self._state = TwiVKStates.STARTING
             self.logger.info(f"Framework is starting...")
 
-            await self.__bot__.auth()
+            if self._api:
+                self._loop_wrapper.add_task(self._api.run_server())
 
-            if self.__bot__.__server__ is not None:
+            await self._bot.auth()
+
+            if self._bot.__server__ is not None:
                 self._state = TwiVKStates.READY
-                self.logger.info(f"{FG.GREEN}Framework is started (BOT_NAME: {self.bot_name}){STYLE.RESET}")
+                self.logger.info(f"{FG.GREEN}Framework is started (bot_name: {self.bot_name}){STYLE.RESET}")
             else:
                 self.logger.error(f"Server was not aquired. Exiting...")
                 self._state = TwiVKStates.ERROR
 
-            async for event_response in self.__bot__.listen():
+            async for event_response in self._bot.listen():
                 if self._state == TwiVKStates.READY:
-                    self._loop_wrapper.add_task(self.__bot__._router.handle(event_response))
+                    self._loop_wrapper.add_task(self._bot._router.handle(event_response))
 
         except KeyboardInterrupt:
             self.logger.debug(f"TwilightVK was stopped by KeyboardInterrupt")
@@ -127,14 +131,15 @@ class TwilightVK:
             self._state = TwiVKStates.ERROR
         finally:
             #self.__loop__.stop()
-            if self._state == TwiVKStates.READY and not self.__bot__.__stop__:
-                self.__bot__.stop()
+            if self._state == TwiVKStates.READY and not self._bot.__stop__:
+                self._bot.stop()
             self.logger.info(f"{FG.RED}Framework has been stopped{STYLE.RESET}")
             await asyncio.sleep(0.1)
             if self._api:
                 await self._api.stop()
-            if self._state not in [TwiVKStates.ERROR]:
-                self._state = TwiVKStates.DISABLED
+            if self._state == TwiVKStates.ERROR:
+                exit(1)
+            self._state = TwiVKStates.DISABLED
             exit(0)
 
 
@@ -171,14 +176,14 @@ class TwilightVK:
         '''
         Tells the bot that it should stop after the next event
         '''
-        if self._state == TwiVKStates.READY and not self.__bot__.__stop__:
+        if self._state == TwiVKStates.READY and not self._bot.__stop__:
             self.logger.info("Framework was asked to stop")
             self._state = TwiVKStates.SHUTTING_DOWN
-            self.__bot__.stop()
+            self._bot.stop()
         elif self._state == TwiVKStates.SHUTTING_DOWN:
             self.logger.warning("Framework is already stopping")
         else:
-            self.logger.error(f"Unable to stop framework for some reason. BOT_STATE={self._state} {self.__bot__.__stop__}")
+            self.logger.error(f"Unable to stop framework for some reason. BOT_STATE={self._state} {self._bot.__stop__}")
 
     def __getApiRouters__(self):
         return self.api_router.get_router()
