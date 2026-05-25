@@ -22,38 +22,9 @@ class VkApiRouter:
         self.bot = _bot
 
         self.router = APIRouter(
-            tags=[self.bot.bot_name],
+            tags=[f"{self.bot.bot_name}.methods"],
             prefix=f"/vk-methods"
         )
-
-        self._parseVkApi()
-    
-    def _parseVkApi(self) -> None:
-
-        self.logger.debug(f"Getting list of method groups...")
-        _methodGroups = self.bot.methods.__dict__
-        _methodGroups.__delitem__("logger")
-        self.logger.debug(f"List of method groups: {_methodGroups}")
-
-        for key in _methodGroups.keys():
-            
-            _router = APIRouter(
-                    tags=[self.bot.bot_name],
-                    prefix=f"/{key}"
-                )
-            
-            self.logger.debug(f"Getting list of the methods inside {key} class...")
-            _methodList = inspect.getmembers(getattr(self.bot.methods, key), predicate=inspect.ismethod)
-            _methodsList = {_method[0]: _method[1] for _method in _methodList}
-            _methodsList.__delitem__("__init__")
-            self.logger.debug(f"List of methods: {_methodsList}")
-
-            for _method in _methodsList.keys():
-                _router.add_api_route(
-                    f"/{_method}", getattr(getattr(self.bot.methods, key), _method), methods=["POST"]
-                )
-
-            self.router.include_router(_router)
     
     def get_router(self) -> APIRouter:
         return self.router

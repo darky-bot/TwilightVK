@@ -7,8 +7,8 @@ from twilight_vk.utils.types.event_types import BotEventType
 @pytest_asyncio.fixture
 def bot(_function_event_loop):
     _bot = TwilightVK(
-        ACCESS_TOKEN="123",
-        GROUP_ID=123,
+        token="123",
+        group_id=123,
         loop_wrapper=_function_event_loop
     )
     yield _bot
