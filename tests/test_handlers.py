@@ -18,9 +18,9 @@ async def test_labeler(bot: TwilightVK, caplog):
     async def foo(event: dict):
         return "OK"
     
-    for handler_name in bot.__bot__._router._handlers.keys():
-        assert bot.__bot__._router._handlers[handler_name]._funcs[0].get("func", False) == foo
-        assert isinstance(bot.__bot__._router._handlers[handler_name]._funcs[0].get("rules")[0], TrueRule)
+    for handler_name in bot._bot._router._handlers.keys():
+        assert bot._bot._router._handlers[handler_name]._funcs[0].get("func", False) == foo
+        assert isinstance(bot._bot._router._handlers[handler_name]._funcs[0].get("rules")[0], TrueRule)
 
 @pytest.mark.asyncio
 async def test_event_handlers(bot: TwilightVK, caplog, monkeypatch, response: dict):
@@ -49,11 +49,11 @@ async def test_event_handlers(bot: TwilightVK, caplog, monkeypatch, response: di
     async def fake_messageSend(*args, **kwargs):
         return True
 
-    for handler_name in bot.__bot__._router._handlers.keys():
-        monkeypatch.setattr(bot.__bot__._router._handlers[handler_name].vk_methods.messages, "send", fake_messageSend)
+    for handler_name in bot._bot._router._handlers.keys():
+        monkeypatch.setattr(bot._bot._router._handlers[handler_name].vk_methods.messages, "send", fake_messageSend)
 
     results = await asyncio.gather(
-        *(bot.__bot__._router.route(event) for event in response["updates"]),
+        *(bot._bot._router.route(event) for event in response["updates"]),
         return_exceptions=False
     )
 
