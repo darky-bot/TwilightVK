@@ -7,7 +7,7 @@ from ..logger.formatters import (
 class CONFIG:
 
     class FRAMEWORK:
-        version = "0.1.0-beta6"
+        version = "0.1.0-beta7"
         developer = "darky_wings"
     
     class VK_API:
@@ -79,80 +79,14 @@ class CONFIG:
                         "level": "WARNING",
                         "propagate": True
                     },
-                    "twi-api-fw": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "twi-api-vkapi": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
                     "twilight-vk": {
                         "handlers": ["console", "file"],
                         "level": "INIT",
                         "propagate": True
-                    },
-                    "botslongpoll": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "vk-methods": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "http-validator": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "event-validator": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "reqst-validator": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "resp-validator": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "event-router": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "event-handler": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "rule-handler": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "loop-manager": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "keyboard": {
-                        "handlers": ["console", "file"],
-                        "level": "INIT",
-                        "propagate": True
-                    },
-                    "asyncio": {
-                        "handlers": ["console", "file"],
-                        "level": "INFO",
-                        "propagate": True
                     }
+                },
+                "root": {
+                    "level": "DEBUG",
+                    "handlers": ["console", "file"]
                 }
             }
