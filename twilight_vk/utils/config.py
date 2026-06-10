@@ -7,7 +7,7 @@ from ..logger.formatters import (
 class CONFIG:
 
     class FRAMEWORK:
-        version = "0.1.0-beta7"
+        version = "0.1.0-beta8"
         developer = "darky_wings"
     
     class VK_API:
@@ -67,22 +67,22 @@ class CONFIG:
                     "twilight-api": {
                         "handlers": ["console", "file"],
                         "level": "INIT",
-                        "propagate": True
+                        "propagate": False
                     },
                     "uvicorn.access": {
                         "handlers": ["uvicorn_access_console", "file"],
                         "level": "INIT",
-                        "propagate": True
+                        "propagate": False
                     },
                     "uvicorn.error": {
                         "handlers": ["uvicorn_access_console", "file"],
                         "level": "WARNING",
-                        "propagate": True
+                        "propagate": False
                     },
                     "twilight-vk": {
                         "handlers": ["console", "file"],
                         "level": "INIT",
-                        "propagate": True
+                        "propagate": False
                     }
                 },
                 "root": {
