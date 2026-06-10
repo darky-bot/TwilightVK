@@ -7,7 +7,7 @@ from ..logger.formatters import (
 class CONFIG:
 
     class FRAMEWORK:
-        version = "0.1.0-beta8"
+        version = "0.1.0-beta9"
         developer = "darky_wings"
     
     class VK_API:
@@ -86,7 +86,7 @@ class CONFIG:
                     }
                 },
                 "root": {
-                    "level": "DEBUG",
+                    "level": "INIT",
                     "handlers": ["console", "file"]
                 }
             }
