@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 import pytest
 import pytest_asyncio
@@ -10,6 +11,8 @@ from tests.fixtures.handlers import (
     bot,
     response
 )
+
+logger = logging.getLogger("test-logger")
 
 @pytest.mark.asyncio
 async def test_labeler(bot: TwilightVK, caplog):
@@ -30,7 +33,7 @@ async def test_event_handlers(bot: TwilightVK, caplog, monkeypatch, response: di
         assert isinstance(event, dict)
         assert event.keys() == {"type": "test", "object": {}}.keys()
         assert event["object"].keys() == {"client_info": {}, "message": {}}.keys()
-        bot.logger.info(f"TEST_MESSAGE_NEW")
+        logger.info(f"TEST_MESSAGE_NEW")
     
     @bot.on_event.raw(BotEventType.LIKE_ADD)
     async def handle_like(event: dict):
@@ -44,7 +47,7 @@ async def test_event_handlers(bot: TwilightVK, caplog, monkeypatch, response: di
             "thread_reply_id": 1,
             "post_id": 1
         }.keys()
-        bot.logger.info(f"TEST_LIKE_ADD")
+        logger.info(f"TEST_LIKE_ADD")
 
     async def fake_messageSend(*args, **kwargs):
         return True
@@ -64,6 +67,6 @@ async def test_event_handlers(bot: TwilightVK, caplog, monkeypatch, response: di
             continue
 
         assert result
-    
-    assert "TEST_MESSAGE_NEW" in caplog.text
+
     assert "TEST_LIKE_ADD" in caplog.text
+    assert "TEST_MESSAGE_NEW" in caplog.text

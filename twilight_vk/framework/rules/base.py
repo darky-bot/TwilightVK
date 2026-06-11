@@ -22,7 +22,7 @@ class BaseRule:
         self.kwargs: dict = kwargs
         self.logger = logging.getLogger("rule-handler")
         self._parseKwargs()
-        self.logger.log(1, f"Rule {self.__class__.__name__}({", ".join(self._printKwargs())}) is initiated")
+        self.logger.debug(f"Rule {self.__class__.__name__}({", ".join(self._printKwargs())}) is initiated")
     
     def _parseKwargs(self):
         '''
@@ -47,7 +47,7 @@ class BaseRule:
         if name not in ['event', 'kwargs', 'methods', 'logger']:
             return getattr(self, self.kwargs[name])
     
-    async def _linkVkMethods(self, methods):
+    async def updateVkMethods(self, methods):
         '''
         Updates the methods attribute so you could make api requests from inside the rule
         '''
@@ -58,13 +58,17 @@ class BaseRule:
             self.logger.error(f"Got an error while linking", exc_info=True)
             return False
     
-    async def _check(self, event: dict) -> bool | dict:
+    async def _check(self, event: dict, methods: 'VkMethods') -> bool | dict:
         '''
         The shell for Rule.check()
         Allows to logging
         '''
         try:
             self.logger.debug(f"Checking rule {self.__class__.__name__}({self._printKwargs()})...")
+
+            if self.methods is None:
+                await self.updateVkMethods(methods)
+                
             response = await self.check(event)
             self.logger.debug(f"Rule {self.__class__.__name__} returned {response}")
             return response
@@ -112,9 +116,11 @@ class AndRule(BaseRule):
     async def check(self, event: dict):
         results = {}
 
+        rule: BaseRule
+
         for rule in self.rules:
 
-            result = await rule._check(event)
+            result = await rule._check(event, self.methods)
 
             if isinstance(result, Exception):
                 return result
@@ -142,9 +148,11 @@ class OrRule(BaseRule):
     
     async def check(self, event: dict):
 
+        rule: BaseRule
+
         for rule in self.rules:
 
-            result = await rule._check(event)
+            result = await rule._check(event, self.methods)
 
             if isinstance(result, Exception):
                 return result
@@ -166,5 +174,7 @@ class NotRule(BaseRule):
     
     async def check(self, event: dict):
 
-        result = await self.rule._check(event)
+        self.rule: BaseRule
+
+        result = await self.rule._check(event, self.methods)
         return not result if isinstance(result, bool) else False

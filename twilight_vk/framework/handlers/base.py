@@ -27,7 +27,7 @@ class BASE_EVENT_HANDLER:
         :type vk_methods: VkMethods
         '''
         self.logger = logging.getLogger(f"event-handler")
-        self.logger.log(1, f"{self.__class__.__name__} event handler is initiated")
+        self.logger.debug(f"{self.__class__.__name__} event handler is initiated")
 
         self.vk_methods = vk_methods
 
@@ -54,11 +54,7 @@ class BASE_EVENT_HANDLER:
         '''
         Checking rule result for current function and event
         '''
-        if not hasattr(rule, "methods") or rule.methods is None:
-            await rule._linkVkMethods(self.vk_methods)
-
-        result = await rule._check(event)
-
+        result = await rule._check(event, self.vk_methods)
         return result
 
     async def _checkRules(self, func, handler, event):
