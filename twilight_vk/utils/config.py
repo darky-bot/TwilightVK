@@ -7,7 +7,7 @@ from ..logger.formatters import (
 class CONFIG:
 
     class FRAMEWORK:
-        version = "0.1.0-beta9"
+        version = "0.2.0-beta1"
         developer = "darky_wings"
     
     class VK_API:
@@ -45,7 +45,7 @@ class CONFIG:
                 },
                 "handlers": {
                     "file": {
-                        "level": "INIT",
+                        "level": "DEBUG",
                         "class": "logging.handlers.RotatingFileHandler",
                         "formatter": "file",
                         "filename": "twilight_vk.log",
@@ -58,7 +58,7 @@ class CONFIG:
                         "formatter": "console"
                     },
                     "uvicorn_access_console": {
-                        "level": "INIT",
+                        "level": "DEBUG",
                         "class": "logging.StreamHandler",
                         "formatter": "uvicorn_access_console"
                     }
@@ -66,12 +66,12 @@ class CONFIG:
                 "loggers": {
                     "twilight-api": {
                         "handlers": ["console", "file"],
-                        "level": "INIT",
+                        "level": "DEBUG",
                         "propagate": False
                     },
                     "uvicorn.access": {
                         "handlers": ["uvicorn_access_console", "file"],
-                        "level": "INIT",
+                        "level": "DEBUG",
                         "propagate": False
                     },
                     "uvicorn.error": {
@@ -81,12 +81,12 @@ class CONFIG:
                     },
                     "twilight-vk": {
                         "handlers": ["console", "file"],
-                        "level": "INIT",
+                        "level": "DEBUG",
                         "propagate": False
                     }
                 },
                 "root": {
-                    "level": "INIT",
+                    "level": "DEBUG",
                     "handlers": ["console", "file"]
                 }
             }

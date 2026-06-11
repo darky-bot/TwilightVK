@@ -14,7 +14,7 @@ class DarkyLogger:
         },
         "handlers": {
             "console": {
-                "level": "INITDEBUG",
+                "level": "DEBUG",
                 "class": "logging.StreamHandler",
                 "formatter": "console"
             }
@@ -22,7 +22,7 @@ class DarkyLogger:
         "loggers": {
             "test": {
                 "handlers": ["console"],
-                "level": "INITDEBUG",
+                "level": "DEBUG",
                 "propagate": False
             }
         }
@@ -51,26 +51,14 @@ class DarkyLogger:
         if ansi:
             Visual.ansi()
 
-        logging.INITDEBUG = 1
-        logging.addLevelName(logging.INITDEBUG, "INIT")
-
-        logging.SUBDEBUG = 5
-        logging.addLevelName(logging.SUBDEBUG, "SUBDEBUG")
-
         logging.NOTE = 100
         logging.addLevelName(logging.NOTE, "NOTE")
 
         logging.config.dictConfig(configuration)
         self.__logger__ = logging.getLogger(logger_name)
         
-        self.initdebug: Callable[[str]] = \
-            lambda msg, *args, **kwargs: self.__logger__.log(level=logging.INITDEBUG, msg=msg, *args, **kwargs)
-        
         self.note: Callable[[str]] = \
             lambda msg, *args, **kwargs: self.__logger__.log(level=logging.NOTE, msg=msg, *args, **kwargs)
-        
-        self.subdebug: Callable[[str]] = \
-            lambda msg, *args, **kwargs: self.__logger__.log(level=logging.SUBDEBUG, msg=msg, *args, **kwargs)
         
         self.debug: Callable[[str]] = \
             lambda msg, *args, **kwargs: self.__logger__.debug(msg, *args, **kwargs)
@@ -88,11 +76,11 @@ class DarkyLogger:
             lambda msg, *args, exc_info=False, **kwargs: self.__logger__.critical(msg, *args, exc_info=exc_info, **kwargs)
         
         if not silent:
-            self.initdebug(f"DarkyLogger initiated")
+            self.debug(f"DarkyLogger initiated")
     
     def __getattr__(self, name):
 
-        if name not in ["initdebug", "subdebug", "debug", "info", "warning", "error", "critical", "note"]:
+        if name not in ["debug", "info", "warning", "error", "critical", "note"]:
             self.__logger__.warning(f"'DarkyLogger' has no attribute '{name}'. \"INFO\" is used instead.")
             name = "info"
         attr = getattr(self.__logger__, name)

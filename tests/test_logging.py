@@ -21,7 +21,7 @@ CONFIG = {
     "handlers": {
         "file": {
             "class": "logging.handlers.RotatingFileHandler",
-            "level": "INIT",
+            "level": "DEBUG",
             "formatter": "file",
             "filename": "tests/test_logging.log",
             "encoding": "utf8",
@@ -29,14 +29,14 @@ CONFIG = {
         },
         "console": {
             "class": "logging.StreamHandler",
-            "level": "INIT",
+            "level": "DEBUG",
             "formatter": "console"
         }
     },
     "loggers": {
         "test": {
             "handlers": ["console", "file"],
-            "level": "INIT",
+            "level": "DEBUG",
             "propagate": True
         }
     }
@@ -47,7 +47,7 @@ def test_logging(caplog):
     print()
     logger = DarkyLogger("test", CONFIG, silent=True)
 
-    for level in [logger.initdebug, logger.note, logger.subdebug, logger.debug, logger.info, logger.warning, logger.error]:
+    for level in [logger.note, logger.debug, logger.info, logger.warning, logger.error]:
         level(f"Mlem")
         level("{'key': 123}, {'access_token': 'abc'}, {\"access_token\": \"abc\"}")
         level(f"https://mlem.api/mlem?access_token=123")
@@ -60,7 +60,7 @@ def test_logging(caplog):
     
     for record in caplog.records:
         if record.message not in ["ANSI support initiated!", "DarkyLogger initiated"]:
-            if record.levelname in ["INIT", "SUBDEBUG", "DEBUG", "INFO", "ERROR"]:
+            if record.levelname in ["DEBUG", "INFO", "ERROR"]:
                 assert record.message in ["Mlem",
                                           "{'key': 123}, {'access_token': 'abc'}, {\"access_token\": \"abc\"}",
                                           "https://mlem.api/mlem?access_token=123",

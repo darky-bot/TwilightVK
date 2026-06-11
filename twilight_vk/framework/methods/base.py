@@ -88,5 +88,5 @@ class BaseMethodsGroup:
         self.base_api = baseMethods
         self.__class_name__ = self.__class__.__name__
         self.logger = logging.getLogger("vk-methods")
-        self.logger.log(1, f"Class {self.__class_name__} was initiated")
+        self.logger.debug(f"Class {self.__class_name__} was initiated")
         self.method = f"{self.__class_name__[0].lower()}{self.__class_name__[1:]}"
