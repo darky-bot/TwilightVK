@@ -1,52 +1,11 @@
 from twilight_vk.logger.darky_logger import DarkyLogger
-from twilight_vk.logger.formatters import (
-    DarkyConsoleFormatter,
-    DarkyFileFormatter
-)
-
-CONFIG = {
-    "version": 1,
-    "disable_existing_loggers": True,
-    "formatters": {
-        "file": {
-            "()": DarkyFileFormatter,
-            "fmt": "%(name)s | %(asctime)s | %(levelname)s | %(message)s"
-        },
-        "console": {
-            "()": DarkyConsoleFormatter,
-            "fmt": "%(name)s | %(asctime)s | %(levelname)s | %(message)s",
-            "colored": True
-        }
-    },
-    "handlers": {
-        "file": {
-            "class": "logging.handlers.RotatingFileHandler",
-            "level": "DEBUG",
-            "formatter": "file",
-            "filename": "tests/test_logging.log",
-            "encoding": "utf8",
-            "backupCount": 1
-        },
-        "console": {
-            "class": "logging.StreamHandler",
-            "level": "DEBUG",
-            "formatter": "console"
-        }
-    },
-    "loggers": {
-        "test": {
-            "handlers": ["console", "file"],
-            "level": "DEBUG",
-            "propagate": True
-        }
-    }
-}
+from twilight_vk.utils.types.cli_colors import ColorTypes
+from tests.fixtures.logging import CONFIG
 
 def test_logging(caplog):
 
     print()
     logger = DarkyLogger("test", CONFIG, silent=True)
-
     for level in [logger.note, logger.debug, logger.info, logger.warning, logger.error]:
         level(f"Mlem")
         level("{'key': 123}, {'access_token': 'abc'}, {\"access_token\": \"abc\"}")
@@ -59,7 +18,7 @@ def test_logging(caplog):
         logger.critical(f"We got an error! Mlem", exc_info=True)
     
     for record in caplog.records:
-        if record.message not in ["ANSI support initiated!", "DarkyLogger initiated"]:
+        if record.message not in ["ANSI support initiated!", "DarkyLogger initiated"] and not record.message.startswith('Color mode:'):
             if record.levelname in ["DEBUG", "INFO", "ERROR"]:
                 assert record.message in ["Mlem",
                                           "{'key': 123}, {'access_token': 'abc'}, {\"access_token\": \"abc\"}",
