@@ -79,6 +79,21 @@ def messages_list():
     }
 
 @pytest.fixture()
+def logic_rules_results():
+    return [
+        True,
+        False,
+        True,
+        False,
+        False,
+        True,
+        True,
+        False,
+        True,
+        True
+    ]
+
+@pytest.fixture()
 def results():
     return [
         [True, False, {"triggers": ["test"]}, True, False, False, False, False, False, False, True, False, False],
@@ -155,6 +170,26 @@ class MockVkMethods:
                     ]
                 }
             }
+        
+@pytest.fixture()
+def logical_rules_list():
+    rules_list: list[BaseRule] = [
+        TrueRule(),
+        ~TrueRule(),
+        TrueRule() & TrueRule(),
+        TrueRule() & ~TrueRule(),
+        ~TrueRule() & ~TrueRule(),
+        TrueRule() | TrueRule(),
+        TrueRule() | ~TrueRule(),
+        ~TrueRule() & ~TrueRule(),
+        TrueRule() | (~TrueRule() & ~TrueRule()),
+        ~(~TrueRule() & ~TrueRule())
+    ]
+    all_rules = []
+    for rule in rules_list:
+        rule.methods = MockVkMethods()
+        all_rules.append(rule)
+    return all_rules
         
 @pytest.fixture()
 def rules_list():

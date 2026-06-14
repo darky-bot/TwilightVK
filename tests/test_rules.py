@@ -5,12 +5,20 @@ from twilight_vk.framework.handlers.event_handlers import DEFAULT_HANDLER
 from tests.fixtures.rules import (
     BaseRule,
     fake_event,
+    logic_rules_results,
+    logical_rules_list,
     messages_list,
     results,
     handler_results,
     rules_list,
     MockVkMethods
 )
+
+@pytest.mark.asyncio
+async def test_logic_rules(logical_rules_list: list[BaseRule], logic_rules_results: list[bool]):
+    for i in range(len(logical_rules_list)):
+        rule_result = await logical_rules_list[i]._check(fake_event, MockVkMethods())
+        assert rule_result == logic_rules_results[i]
 
 @pytest.mark.asyncio
 async def test_rules(fake_event: dict, messages_list: list, results: list, rules_list: list[BaseRule]):
