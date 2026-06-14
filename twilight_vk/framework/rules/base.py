@@ -87,19 +87,10 @@ class BaseRule:
     def __and__(self, other: "BaseRule"):
         return AndRule(self, other)
     
-    def and_(self, other: "BaseRule"):
-        return AndRule(self, other)
-    
     def __or__(self, other: "BaseRule"):
         return OrRule(self, other)
     
-    def or_(self, other: "BaseRule"):
-        return OrRule(self, other)
-    
-    def __not__(self):
-        return NotRule(self)
-    
-    def not_(self):
+    def __invert__(self):
         return NotRule(self)
 
 
@@ -169,12 +160,15 @@ class NotRule(BaseRule):
         Модификатор NOT для комбинирования правил
         '''
         super().__init__(
-            rule = rule
+            rules = (rule,)
         )
     
     async def check(self, event: dict):
 
-        self.rule: BaseRule
+        rule: BaseRule
 
-        result = await self.rule._check(event, self.methods)
-        return not result if isinstance(result, bool) else False
+        for rule in self.rules:
+
+            result = await rule._check(event, self.methods)
+            
+            return not result if isinstance(result, bool) else False
