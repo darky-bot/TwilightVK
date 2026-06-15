@@ -90,7 +90,13 @@ def logic_rules_results():
         True,
         False,
         True,
-        True
+        True,
+        {"triggers": ["darky"]},
+        False,
+        {"triggers": ["darky"]},
+        False,
+        {"triggers": ["darky"]},
+        {"triggers": ["darky"], "text": "darky pony"}
     ]
 
 @pytest.fixture()
@@ -183,7 +189,13 @@ def logical_rules_list():
         TrueRule() | ~TrueRule(),
         ~TrueRule() & ~TrueRule(),
         TrueRule() | (~TrueRule() & ~TrueRule()),
-        ~(~TrueRule() & ~TrueRule())
+        ~(~TrueRule() & ~TrueRule()),
+        ContainsRule(triggers=["darky"]),
+        ~ContainsRule(triggers=["darky"]),
+        ContainsRule(triggers=["darky"]) | ~TrueRule(),
+        ContainsRule(triggers=["darky"]) & ~TrueRule(),
+        ContainsRule(triggers=["darky"]) & TrueRule(),
+        ContainsRule(triggers=["darky"]) & TwiMLRule(value=["hello world <text>"])
     ]
     all_rules = []
     for rule in rules_list:

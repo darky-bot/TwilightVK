@@ -15,7 +15,8 @@ from tests.fixtures.rules import (
 )
 
 @pytest.mark.asyncio
-async def test_logic_rules(logical_rules_list: list[BaseRule], logic_rules_results: list[bool]):
+async def test_logic_rules(fake_event: dict, logical_rules_list: list[BaseRule], logic_rules_results: list[bool]):
+    fake_event["object"]["message"]["text"] = "hello world darky pony"
     for i in range(len(logical_rules_list)):
         rule_result = await logical_rules_list[i]._check(fake_event, MockVkMethods())
         assert rule_result == logic_rules_results[i]
