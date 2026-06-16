@@ -103,16 +103,16 @@ def logic_rules_results():
 def results():
     return [
         [True, False, {"triggers": ["test"]}, True, False, False, False, False, False, False, True, False, False],
-        [True, False, {"triggers": ["test", "darky"]}, True, {"variable": "darky"}, False, False, True, False, False, True, True, False],
-        [True, False, {"triggers": ["test"]}, False, {"variable": "test"}, False, False, False, True, False, True, True, True],
+        [True, False, {"triggers": ["test", "darky"]}, True, {"variable": "darky"}, False, False, {"have_reply": True}, False, False, True, True, False],
+        [True, False, {"triggers": ["test"]}, False, {"variable": "test"}, False, False, False, {"have_forward": True}, False, True, True, True],
         [True, False, {"triggers": ["test"]}, False, {"variable": "[club123|@club123]"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, False, False, True, False, False],
-        [True, False, False, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, True, False, False, True, True, False],
-        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, True, False, True, True, True],
+        [True, False, False, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, {"have_reply": True}, False, False, True, True, False],
+        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]}, True, False, {"have_forward": True}, False, True, True, True],
         [True, False, {"triggers": ["test"]}, False, {"variable": "[id1234|@id1234]"}, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, False, False, True, False, False],
-        [True, False, False, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, True, False, False, True, True, False],
-        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, True, False, True, True, True],
+        [True, False, False, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, {"have_reply": True}, False, False, True, True, False],
+        [True, False, {"triggers": ["test"]}, False, False, {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, False, False, {"have_forward": True}, False, True, True, True],
         [True, False, {"triggers": ["darky"]}, False, False, False, False, False, False, False, True, False, False],
-        [True, False, {"triggers": ["test", "darky"]}, False, {"variable": "[club123|@club123] [id1234|@id1234] darky"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}, {"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, True, True, False, False, True, True, False]
+        [True, False, {"triggers": ["test", "darky"]}, False, {"variable": "[club123|@club123] [id1234|@id1234] darky"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}, {"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, True, {"have_reply": True}, False, False, True, True, False]
     ]
 
 @pytest.fixture
@@ -121,38 +121,49 @@ def handler_results():
         {"triggers": ["test"]},
         {
             "triggers": ["test", "darky"],
-            "variable": "darky"
+            "variable": "darky",
+            "have_reply": True
         },
         {
             "triggers": ["test"],
-            "variable": "test"
+            "variable": "test",
+            "have_forward": True
         },
         {
             "triggers": ["test"],
             "variable": "[club123|@club123]",
             "mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]
         },
-        {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]},
+        {
+            "mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}],
+            "have_reply": True
+        },
         {
             "triggers": ["test"],
-            "mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}]
+            "mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}],
+            "have_forward": True
         },
         {
             "triggers": ["test"],
             "variable": "[id1234|@id1234]",
             "mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]
         },
-        {"mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]},
+        {
+            "mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}],
+            "have_reply": True
+        },
         {
             "triggers": ["test"],
-            "mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]
+            "mentions": [{"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}],
+            "have_forward": True
         },
         {"triggers": ["darky"]},
         {
             "triggers": ["test", "darky"],
             "variable": "[club123|@club123] [id1234|@id1234] darky",
             "mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}, 
-                         {"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]
+                         {"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}],
+            "have_reply": True
         }
     ]
 
