@@ -148,6 +148,9 @@ class OrRule(BaseRule):
             if isinstance(result, Exception):
                 return result
             
+            if isinstance(result, dict):
+                return result
+            
             if result is True:
                 return True
             

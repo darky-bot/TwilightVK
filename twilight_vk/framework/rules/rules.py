@@ -183,23 +183,45 @@ class IsMentionedRule(MentionRule):
 
 class ReplyRule(BaseRule):
 
-    '''
-    Проверяет наличие ответа в событии.
-    Возвращает True/False в зависимости от результата
-    '''
+    def __init__(self,
+                 callback: bool = True):
+        '''
+        Проверяет наличие ответа в событии.
+        Возвращает True/False в зависимости от результата либо обозначает в переданных параметрах have_reply при callback = True
+
+        :param callback: определяет вывод правила (True/False либо {"have_reply": True}/False)
+        :type callback: bool
+        '''
+        super().__init__(
+            callback = callback
+        )
+    
     async def check(self, event: dict) -> bool:
         if event["object"]["message"].get("reply_message", None) is not None:
+            if self.callback:
+                return {"have_reply": True}
             return True
         return False
 
 class ForwardRule(BaseRule):
 
-    '''
-    Проверяет наличие пересланного сообщения в событии.
-    Возвращает True/False в зависимости от результата.
-    '''
+    def __init__(self,
+                 callback: bool = True):
+        '''
+        Проверяет наличие пересланного сообщения в событии.
+        Возвращает True/False в зависимости от результата либо обозначает в переданных параметрах have_forward при callback = True
+
+        :param callback: определяет вывод правила (True/False либо {"have_forward": True}/False)
+        :type callback: bool
+        '''
+        super().__init__(
+            callback = callback
+        )
+    
     async def check(self, event: dict) -> bool:
         if event["object"]["message"].get("fwd_messages") != []:
+            if self.callback:
+                return {"have_forward": True}
             return True
         return False
 
