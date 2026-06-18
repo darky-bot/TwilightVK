@@ -10,13 +10,15 @@ class Http:
     def __init__(self,
                  headers: dict | None = None,
                  timeout: int = 30,
-                 retries: int = 5):
+                 retries: int = 5,
+                 retry_after_time: int = 0):
         '''
         This class allows to use HTTP requests asynchronously
         '''
         self.session = None
         self.headers = headers
         self.timeout = timeout
+        self._retry_time = retry_after_time
         self._retry_attempt = 0
         self.retries = retries
     
@@ -31,6 +33,58 @@ class Http:
         if raw:
             return response
         return await response.json()
+    
+    async def request(self,
+                      url: str,
+                      method: str = 'GET',
+                      data: dict | None = None,
+                      params: dict | None = None,
+                      headers: dict | None = None,
+                      raw: bool = True) -> ClientResponse | dict:
+        '''
+        HTTP request method
+
+        :param url: The url to get the response from
+        :type url: str
+
+        :param method: Type of HTTP request (GET/POST)
+        :type method: str
+
+        :param data: Dictionary containing the data to be sent in the request body
+        :type data: dict
+
+        :param params: Dictionary containing the optional data to be sent with the request
+        :type params: dict | None
+
+        :param headers: Optional dictionary of HTTP headers to include in the request
+        :type headers: dict, optional
+
+        :param raw: Defines the raw/json response
+        :type raw: bool
+        '''
+        await self._get_session()
+
+        try:
+            response = await self.session.request(
+                method = method,
+                url = url,
+                json = data,
+                params = params,
+                headers = headers
+            )
+        except asyncio.TimeoutError as ex:
+            logger.error(f"TimeoutError occured in HTTP request")
+            
+            self._retry_attempt += 1
+            if self._retry_attempt <= self.retries:
+                logger.info(f"Retrying request after {self._retry_time} seconds (Attempt {self._retry_attempt}/{self.retries})...")
+                return await self.request(url, method, data, params, headers, raw)
+            
+            logger.error(f"No more retry attempts, raising exception...")
+            raise ex
+
+        self._retry_attempt = 0
+        return await self._is_raw(response, raw = raw)
 
     async def get(self,
                   url: str,
@@ -56,24 +110,14 @@ class Http:
         :param raw: Defines the raw/json response
         :type raw: bool
         '''
-        await self._get_session()
-        try:
-            response = await self.session.get(url=url,
-                                            params=params,
-                                            json=data,
-                                            headers=headers)
-        except asyncio.TimeoutError:
-            self._retry_attempt += 1
-            logger.error(f"TimeoutError occured in HTTP-GET request")
-
-            if self._retry_attempt <= self.retries:
-                logger.info(f"Retrying (Attempt ({self._retry_attempt}/{self.retries}))...")
-                return await self.get(url = url, data = data, params = params, headers = headers, raw = raw)
-            
-            logger.error(f"No more retry attempts, raising exception...")
-            raise asyncio.TimeoutError
-
-        return await self._is_raw(response, raw=raw)
+        return await self.request(
+            url = url,
+            method = "GET",
+            data = data,
+            params = params,
+            headers = headers,
+            raw = raw
+        )
     
     async def post(self,
                    url: str,
@@ -99,24 +143,14 @@ class Http:
         :param raw: Defines the raw/json response
         :type raw: bool
         '''
-        await self._get_session()
-        try:
-            response = await self.session.post(url=url,
-                                            params=params,
-                                            json=data,
-                                            headers=headers)
-        except asyncio.TimeoutError:
-            self._retry_attempt += 1
-            logger.error(f"TimeoutError occured in HTTP-GET request")
-
-            if self._retry_attempt <= self.retries:
-                logger.info(f"Retrying (Attempt ({self._retry_attempt}/{self.retries}))...")
-                return await self.post(url = url, data = data, params = params, headers = headers, raw = raw)
-            
-            logger.error(f"No more retry attempts, raising exception...")
-            raise asyncio.TimeoutError
-
-        return await self._is_raw(response, raw=raw)
+        return await self.request(
+            url = url,
+            method = "POST",
+            data = data,
+            params = params,
+            headers = headers,
+            raw = raw
+        )
     
     async def close(self):
         if self.session is not None and not self.session.closed:
