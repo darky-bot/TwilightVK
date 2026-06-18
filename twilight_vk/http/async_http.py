@@ -34,7 +34,7 @@ class Http:
 
     async def get(self,
                   url: str,
-                  data: dict = {},
+                  data: dict | None = None,
                   params: dict | None = None,
                   headers: dict | None = None,
                   raw: bool = True) -> ClientResponse | dict:
@@ -77,9 +77,9 @@ class Http:
     
     async def post(self,
                    url: str,
-                   data: dict = {},
-                   params: dict = {},
-                   headers: dict = None,
+                   data: dict | None = None,
+                   params: dict | None = None,
+                   headers: dict | None = None,
                    raw: bool = True) -> ClientResponse | dict:
         '''
         HTTP POST method
