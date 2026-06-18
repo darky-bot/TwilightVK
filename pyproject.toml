@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "twilight-vk"
-version = "0.3.0b3"
+version = "0.4.0b1"
 authors = [
     {name = "darky_wings"}
 ]
