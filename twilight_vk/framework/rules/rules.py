@@ -1,6 +1,7 @@
 from .base import BaseRule
 from ...utils.twiml import TwiML
 from ...utils.types.event_types import MessageActionTypes
+from ...framework.exceptions.vkapi import VkApiError
 
 class TrueRule(BaseRule):
     '''
@@ -234,19 +235,23 @@ class AdminRule(BaseRule):
     '''
 
     async def _getAdmins(self, event: dict) -> None:
-        if (
-            event.setdefault("is_admin", None) is None or
-            event.setdefault("is_bot_admin", None) is None
-        ):
-            chat_members = await self.methods.messages.getConversationMembers(
-                peer_id=event["object"]["message"]["peer_id"]
-            )
-            member: dict
-            for member in chat_members["response"]["items"]:
-                if member.get("member_id") == event["object"]["message"]["from_id"]:
-                    event["is_admin"] = member.get("is_admin", False)
-                if member.get("member_id") == -event.get("group_id"):
-                    event["is_bot_admin"] = member.get("is_admin", False)
+        try:
+            if (
+                event.setdefault("is_admin", None) is None or
+                event.setdefault("is_bot_admin", None) is None
+            ):
+                chat_members = await self.methods.messages.getConversationMembers(
+                    peer_id=event["object"]["message"]["peer_id"]
+                )
+                member: dict
+                for member in chat_members["response"]["items"]:
+                    if member.get("member_id") == event["object"]["message"]["from_id"]:
+                        event["is_admin"] = member.get("is_admin", False)
+                    if member.get("member_id") == -event.get("group_id"):
+                        event["is_bot_admin"] = member.get("is_admin", False)
+        except VkApiError as ex:
+            if ex.error_code == 917:
+                event["is_bot_admin"] = False
 
     async def check(self, event: dict) -> bool:
         await self._getAdmins(event)
