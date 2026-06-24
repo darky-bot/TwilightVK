@@ -11,6 +11,7 @@ from .rules import (
     AdminRule,
     IsAdminRule,
     InvitedRule,
-    IsInvitedRule
+    IsInvitedRule,
+    OnPayloadRule
 )
 from .base import BaseRule

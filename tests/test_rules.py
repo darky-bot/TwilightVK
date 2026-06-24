@@ -5,11 +5,14 @@ from twilight_vk.framework.handlers.event_handlers import DEFAULT_HANDLER
 from tests.fixtures.rules import (
     BaseRule,
     fake_event,
+    fake_payload_event,
     logic_rules_results,
     logical_rules_list,
     messages_list,
     results,
     handler_results,
+    payload_results,
+    payload_rule_list,
     rules_list,
     MockVkMethods
 )
@@ -49,3 +52,13 @@ async def test_handlerinput(fake_event: dict, messages_list: list, results: list
         rule_results = [await rule._check(fake_event, MockVkMethods()) for rule in rules_list]
         handler_result = await DEFAULT_HANDLER(MockVkMethods())._extractArgs(rule_results)
         assert handler_result == handler_results[test]
+
+@pytest.mark.asyncio
+async def test_payloadrule(fake_payload_event: dict, messages_list: list, payload_results: list, payload_rule_list: list[BaseRule]):
+    for test in range(len(messages_list["payloads"])):
+        if "payload" in fake_payload_event["object"]:
+            fake_payload_event["object"].__delitem__("payload")
+        if messages_list["payloads"][test] is not None:
+            fake_payload_event["object"]["payload"] = messages_list["payloads"][test]
+        rule_results = [await rule._check(fake_payload_event, MockVkMethods()) for rule in payload_rule_list]
+        assert rule_results == payload_results[test]

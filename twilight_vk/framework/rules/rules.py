@@ -2,6 +2,7 @@ from .base import BaseRule
 from ...utils.twiml import TwiML
 from ...utils.types.event_types import MessageActionTypes
 from ...framework.exceptions.vkapi import VkApiError
+from ...utils.types.event_types import BotEventType
 
 class TrueRule(BaseRule):
     '''
@@ -295,3 +296,33 @@ class IsInvitedRule(InvitedRule):
         if await self._whoIsInvited(event) == -event.get("group_id"):
             return True
         return False
+    
+class OnPayloadRule(BaseRule):
+        
+    def __init__(self,
+                 payload: dict = {}) -> None:
+        '''
+        Возвращает True если payload совпадает с переданным
+        
+        :param payload: Ожидаемый payload от события
+        :type payload: dict
+        '''
+        super().__init__()
+        self.payload: dict = payload
+    
+    async def check(self, event: dict) -> bool:
+        
+        _event_object: dict = event["object"]
+
+        if event.get("type") == BotEventType.MESSAGE_NEW: _event_object = event["object"]["message"]
+
+        _payload = _event_object.get("payload", None)
+
+        if self.payload == {} and _payload not in [{}, None]:
+            return True
+        
+        if self.payload == {}: return False
+        
+        return _payload == self.payload
+        
+        

@@ -75,6 +75,14 @@ def messages_list():
             {"type": "chat_invite_user", "member_id": -123},
             None,
             {"type": "chat_invite_user", "member_id": 123}
+        ],
+        "payloads": [
+            None,
+            {},
+            {"payload": "test"},
+            {"test": 123},
+            {"test": "test"},
+            {"test": "payload"}
         ]
     }
 
@@ -230,6 +238,42 @@ def rules_list():
         IsAdminRule(),
         InvitedRule(),
         IsInvitedRule()
+    ]
+    all_rules = []
+    for rule in rules_lst:
+        rule.methods = MockVkMethods()
+        all_rules.append(rule)
+    return all_rules
+
+@pytest.fixture()
+def fake_payload_event():
+    return {
+        "group_id": 123,
+        "type": "message_event",
+        "object": {
+            "peer_id": 2000000001,
+            "conversation_message_id": 1,
+            "from_id": 1234
+        }
+    }
+
+@pytest.fixture()
+def payload_results():
+    return [
+        [False, False, False],
+        [False, False, False],
+        [False, True, False],
+        [False, True, False],
+        [True, True, False],
+        [False, True, True]
+    ]
+
+@pytest.fixture()
+def payload_rule_list():
+    rules_lst: list[BaseRule] = [
+        OnPayloadRule(payload={"test": "test"}),
+        OnPayloadRule(),
+        OnPayloadRule(payload={"test": "payload"})
     ]
     all_rules = []
     for rule in rules_lst:
