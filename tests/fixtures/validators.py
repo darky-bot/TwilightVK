@@ -4,6 +4,8 @@ import pytest
 
 from twilight_vk.utils.types.event_types import BotEventType
 from twilight_vk.utils.types.response import Response
+from twilight_vk.utils.keyboard import KeyboardMarkup
+from twilight_vk.utils.keyboard import CallbackActionKeyboardButton
 
 class MockedHttpResponse:
 
@@ -30,6 +32,9 @@ class MockEvent:
         self.object = {
             "type": event_type or BotEventType.MESSAGE_NEW,
             "object": {
+                "conversation_message_id": 1,
+                "peer_id": 123,
+                "payload": {"test": "payload"},
                 "message": {
                     "conversation_message_id": 1,
                     "peer_id": 123,
@@ -125,13 +130,21 @@ def request_params():
 def outputs():
     return [
         (MockEvent(event_type=BotEventType.MESSAGE_NEW).get(), "Test output"),
+        (MockEvent(event_type=BotEventType.MESSAGE_NEW).get(), ("Test", KeyboardMarkup(inline=True, buttons=[[CallbackActionKeyboardButton(label="Test")]]).getMarkup())),
         (MockEvent(event_type=BotEventType.MESSAGE_NEW).get(), Response(
             peer_ids=[123],
             message="Test output"
         )),
         (MockEvent(event_type=BotEventType.LIKE_ADD).get(), "Test output"),
+        (MockEvent(event_type=BotEventType.LIKE_ADD).get(), ("Test", KeyboardMarkup(inline=True, buttons=[[CallbackActionKeyboardButton(label="Test")]]).getMarkup())),
         (MockEvent(event_type=BotEventType.LIKE_ADD).get(), Response(
             peer_ids=[123],
             message="Test output"
-        ))
+        )),
+        (MockEvent(event_type=BotEventType.MESSAGE_EVENT).get(), "Test output"),
+        (MockEvent(event_type=BotEventType.MESSAGE_EVENT).get(), ("Test", KeyboardMarkup(inline=True, buttons=[[CallbackActionKeyboardButton(label="Test")]]).getMarkup())),
+        (MockEvent(event_type=BotEventType.MESSAGE_EVENT).get(), Response(
+            peer_ids=[123],
+            message="Test output"
+        )),
     ]
