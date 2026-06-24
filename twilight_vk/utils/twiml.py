@@ -49,7 +49,8 @@ class TwiML:
         result = {}
         for (name, _), value in zip(placeholders, match.groups()):
             result[name] = args[name](value)
-        return result
+            
+        return result if result != {} else None
     
     async def extract_mentions(self,
                                message: str) -> dict:
