@@ -111,6 +111,7 @@ class AndRule(BaseRule):
         Модификатор AND для комбинирования правил
         '''
         super().__init__(
+            on_event_types = [BotEventType.__getattribute__(BotEventType, event_type) for event_type in BotEventType.__dict__ if "__" not in event_type],
             rules = rules
         )
 
@@ -144,6 +145,7 @@ class OrRule(BaseRule):
         Модификатор OR для комбинирования правил
         '''
         super().__init__(
+            on_event_types = [BotEventType.__getattribute__(BotEventType, event_type) for event_type in BotEventType.__dict__ if "__" not in event_type],
             rules = rules
         )
     
@@ -173,6 +175,7 @@ class NotRule(BaseRule):
         Модификатор NOT для комбинирования правил
         '''
         super().__init__(
+            on_event_types = [BotEventType.__getattribute__(BotEventType, event_type) for event_type in BotEventType.__dict__ if "__" not in event_type],
             rules = (rule,)
         )
     
