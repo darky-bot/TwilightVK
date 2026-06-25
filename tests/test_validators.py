@@ -12,6 +12,7 @@ from twilight_vk.framework.validators import (
 from twilight_vk.framework.exceptions import(
     HttpValidationError,
     EventValidationError,
+    ValidationError,
     VkApiError,
     LongPollError
 )
@@ -25,6 +26,9 @@ from tests.fixtures.validators import (
     request_params,
     outputs
 )
+
+from twilight_vk.utils.keyboard import KeyboardMarkup
+from twilight_vk.utils.keyboard import CallbackActionKeyboardButton
 
 async def fake_type_validating(*args, **kwargs):
     return True
@@ -87,17 +91,54 @@ async def test_response_validator(outputs):
                                                                                    forward={"peer_id": 123,
                                                                                             "conversation_message_ids": 1,
                                                                                             "is_reply": True}).getData()
+    
+    # MESSAGE_NEW with string and keyboard tuple output
+    assert (await ResponseValidator.validate(outputs[1][1], 
+                                             outputs[1][0])).getData() == Response(peer_ids=123,
+                                                                                   message="Test",
+                                                                                   forward={"peer_id": 123,
+                                                                                            "conversation_message_ids": 1,
+                                                                                            "is_reply": True},
+                                                                                   keyboard=KeyboardMarkup(inline=True, buttons=[[CallbackActionKeyboardButton(label="Test")]]).getMarkup()).getData()
 
     # MESSAGE_NEW with Response() output
-    assert (await ResponseValidator.validate(outputs[1][1], 
-                                             outputs[1][0])).getData() == Response(peer_ids=[123], 
+    assert (await ResponseValidator.validate(outputs[2][1], 
+                                             outputs[2][0])).getData() == Response(peer_ids=[123], 
                                                                                    message="Test output").getData()
 
     # LIKE_ADD with string output
-    assert (await ResponseValidator.validate(outputs[2][1], 
-                                             outputs[2][0])) == "Test output"
+    with pytest.raises(ValidationError, match=r"Validation error : Invalid response body"):
+        await ResponseValidator.validate(outputs[3][1], 
+                                         outputs[3][0])
+        
+    # LIKE_ADD with string and keyboard tuple output
+    with pytest.raises(ValidationError, match=r"Validation error : Invalid response body"):
+        await ResponseValidator.validate(outputs[4][1], 
+                                         outputs[4][0])
 
     # LIKE_ADD with Response() output
-    assert (await ResponseValidator.validate(outputs[3][1], 
-                                             outputs[3][0])).getData() == Response(peer_ids=[123], 
+    assert (await ResponseValidator.validate(outputs[5][1], 
+                                             outputs[5][0])).getData() == Response(peer_ids=[123], 
+                                                                                   message="Test output").getData()
+    
+    # MESSAGE_EVENT with string output
+    assert (await ResponseValidator.validate(outputs[6][1], 
+                                             outputs[6][0])).getData() == Response(peer_ids=123,
+                                                                                   message="Test output",
+                                                                                   forward={"peer_id": 123,
+                                                                                            "conversation_message_ids": 1,
+                                                                                            "is_reply": True}).getData()
+    
+    # MESSAGE_EVENT with string and keyboard tuple output
+    assert (await ResponseValidator.validate(outputs[7][1], 
+                                             outputs[7][0])).getData() == Response(peer_ids=123,
+                                                                                   message="Test",
+                                                                                   forward={"peer_id": 123,
+                                                                                            "conversation_message_ids": 1,
+                                                                                            "is_reply": True},
+                                                                                   keyboard=KeyboardMarkup(inline=True, buttons=[[CallbackActionKeyboardButton(label="Test")]]).getMarkup()).getData()
+
+    # MESSAGE_EVENT with Response() output
+    assert (await ResponseValidator.validate(outputs[8][1], 
+                                             outputs[8][0])).getData() == Response(peer_ids=[123], 
                                                                                    message="Test output").getData()

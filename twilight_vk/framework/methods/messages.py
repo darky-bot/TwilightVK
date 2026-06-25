@@ -100,7 +100,6 @@ class Messages(BaseMethodsGroup):
         Отправляет сообщение
         (см. https://dev.vk.ru/ru/method/messages.send)
         '''
-
         values = {
             "user_id": user_id,
             "random_id": randint(0, 1000000000),
@@ -129,5 +128,25 @@ class Messages(BaseMethodsGroup):
             "v": self.__api_version__
         }
         response = await self.base_api.base_get_method(api_method=f"{self.method}.send",
+                                                       values=values)
+        return response
+    
+    async def sendMessageEventAnswer(self,
+                                     event_id: str,
+                                     user_id: int,
+                                     peer_id: int,
+                                     event_data: dict = None):
+        '''
+        Отправляет событие с действием, которое произойдет при нажатии на callback-кнопку.
+        (см. https://dev.vk.ru/ru/method/messages.sendMessageEventAnswer)
+        '''
+        values = {
+            "event_id": event_id,
+            "user_id": user_id,
+            "peer_id": peer_id,
+            "event_data": event_data,
+            "v": self.__api_version__
+        }
+        response = await self.base_api.base_get_method(api_method=f"{self.method}.sendMessageEventAnswer",
                                                        values=values)
         return response

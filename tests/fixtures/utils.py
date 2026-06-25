@@ -42,7 +42,7 @@ def parse_dataset():
             "test <user> <testword:word>"
         ],
         "results": [
-            [None, {}, {}, {}, {}, {}, {}],
+            [None, None, None, None, None, None, None],
             [None, None, {"user": "123"}, {"user": "darky"}, {"user": "darky 21"}, {"user": "darky darky"}, {"user": "darky abc efg"}],
             [None, None, {"user": 123}, None, None, None, None],
             [None, None, {"user": "123"}, {"user": "darky"}, {"user": "darky"}, {"user": "darky"}, {"user": "darky"}],

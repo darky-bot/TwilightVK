@@ -1,20 +1,34 @@
 from .base import BaseRule
 from ...utils.twiml import TwiML
 from ...utils.types.event_types import MessageActionTypes
+from ...framework.exceptions.vkapi import VkApiError
+from ...utils.types.event_types import BotEventType
 
 class TrueRule(BaseRule):
-    '''
-    Возвращает всегда True
-    Правило сделано в основном для теста
-    '''
+    
+    def __init__(self) -> None:
+        '''
+        Возвращает всегда True
+        Правило сделано в основном для теста
+        '''
+        super().__init__(
+            on_event_types = [BotEventType.__getattribute__(BotEventType, event_type) for event_type in BotEventType.__dict__ if "__" not in event_type]
+        )
+
     async def check(self, event: dict):
         return True
 
 class FalseRule(BaseRule):
-    '''
-    Возвращает всегда False
-    Правило сделано в основном для теста
-    '''
+
+    def __init__(self) -> None:
+        '''
+        Возвращает всегда False
+        Правило сделано в основном для теста
+        '''
+        super().__init__(
+            on_event_types = [BotEventType.__getattribute__(BotEventType, event_type) for event_type in BotEventType.__dict__ if "__" not in event_type]
+        )
+
     async def check(self, event: dict):
         return False
 
@@ -36,13 +50,13 @@ class ContainsRule(BaseRule):
         :param need_list: Дает понять нужно ли возвращать список найденных фрагментов или достаточно просто оповестить
         :type need_list: bool
         '''
-        super().__init__(
-            triggers = triggers,
-            ignore_case = ignore_case,
-            need_list = need_list
-        )
+        super().__init__()
+        self.triggers: list[str] = triggers
+        self.ignore_case: bool = ignore_case
+        self.need_list: bool = need_list
     
     async def check(self, event: dict) -> bool | dict:
+
         text: str = event["object"]["message"]["text"]
         text = text.lower() if self.ignore_case else text
         result = {
@@ -76,11 +90,9 @@ class TextRule(BaseRule):
         :param ignore_case: Флаг игнорирования регистра
         :type ignore_case: bool
         '''
-
-        super().__init__(
-            value = value,
-            ignore_case = ignore_case
-        )
+        super().__init__()
+        self.value: list[str] = value
+        self.ignore_case: bool = ignore_case
 
     async def check(self, event: dict) -> bool:
         text:str = event["object"]["message"]["text"]
@@ -107,11 +119,9 @@ class TwiMLRule(BaseRule):
         :param ignore_case: Флаг игнорирования регистра
         :type ignore_case: bool
         '''
-
-        super().__init__(
-            value = value,
-            ignore_case = ignore_case
-        )
+        super().__init__()
+        self.value: list[str] = value
+        self.ignore_case: bool = ignore_case
 
     async def check(self, event: dict) -> bool | dict:
         text:str = event["object"]["message"]["text"]
@@ -119,10 +129,10 @@ class TwiMLRule(BaseRule):
 
         twiml = TwiML()
 
-        for value in self.value:
-            value = value.lower() if self.ignore_case else value
+        for _value in self.value:
+            _value = _value.lower() if self.ignore_case else _value
 
-            twiml.update_template(value)
+            twiml.update_template(_value)
             result = await twiml.parse(text)
 
             if result is not None:
@@ -142,9 +152,8 @@ class MentionRule(BaseRule):
         :param need_list: Дает понять нужно ли возвращать список упоминаний или достаточно просто оповестить что упоминание было
         :type need_list: bool
         '''
-        super().__init__(
-            need_list = need_list
-        )
+        super().__init__()
+        self.need_list: bool = need_list
     
     async def _getMentions(self, event: dict) -> dict:
         text: str = event["object"]["message"]["text"]
@@ -192,9 +201,8 @@ class ReplyRule(BaseRule):
         :param callback: определяет вывод правила (True/False либо {"have_reply": True}/False)
         :type callback: bool
         '''
-        super().__init__(
-            callback = callback
-        )
+        super().__init__()
+        self.callback: bool = callback
     
     async def check(self, event: dict) -> bool:
         if event["object"]["message"].get("reply_message", None) is not None:
@@ -214,9 +222,8 @@ class ForwardRule(BaseRule):
         :param callback: определяет вывод правила (True/False либо {"have_forward": True}/False)
         :type callback: bool
         '''
-        super().__init__(
-            callback = callback
-        )
+        super().__init__()
+        self.callback: bool = callback
     
     async def check(self, event: dict) -> bool:
         if event["object"]["message"].get("fwd_messages") != []:
@@ -228,25 +235,47 @@ class ForwardRule(BaseRule):
 
 class AdminRule(BaseRule):
 
-    '''
-    Проверяет является ли пользователь отправивший сообщение в беседе его администратором
-    Возвращает True/False в зависимости от результата
-    '''
+    def __init__(self) -> None:
+        '''
+        Проверяет является ли пользователь отправивший сообщение в беседе его администратором
+        Возвращает True/False в зависимости от результата
+        '''
+        super().__init__(
+            on_event_types = [BotEventType.MESSAGE_NEW, BotEventType.MESSAGE_EVENT]
+        )
 
     async def _getAdmins(self, event: dict) -> None:
-        if (
-            event.setdefault("is_admin", None) is None or
-            event.setdefault("is_bot_admin", None) is None
-        ):
-            chat_members = await self.methods.messages.getConversationMembers(
-                peer_id=event["object"]["message"]["peer_id"]
-            )
-            member: dict
-            for member in chat_members["response"]["items"]:
-                if member.get("member_id") == event["object"]["message"]["from_id"]:
-                    event["is_admin"] = member.get("is_admin", False)
-                if member.get("member_id") == -event.get("group_id"):
-                    event["is_bot_admin"] = member.get("is_admin", False)
+        
+        _event_object: dict = event["object"]["message"] if event.get("type") == BotEventType.MESSAGE_NEW else event["object"]
+        _peer_id: int = _event_object.get("peer_id")
+        _from_id: int = _event_object.get("from_id") if event.get("type") == BotEventType.MESSAGE_NEW else _event_object.get("user_id")
+
+        try:
+
+            event.setdefault("is_admin", None)
+            event.setdefault("is_bot_admin", None)
+
+            if (event.get("is_admin") is None or
+                event.get("is_bot_admin") is None):
+
+                chat_members = await self.methods.messages.getConversationMembers(
+                    peer_id = _peer_id
+                )
+                
+                member: dict
+                for member in chat_members["response"]["items"]:
+
+                    _member_id = member.get("member_id")
+                    _is_admin = member.get("is_admin", False)
+
+                    if _member_id == _from_id: event["is_admin"] = _is_admin
+                    if _member_id == -event.get("group_id"): event["is_bot_admin"] = _is_admin
+
+        except VkApiError as ex:
+            
+            if ex.error_code == 917:
+                event["is_bot_admin"] = False
+
 
     async def check(self, event: dict) -> bool:
         await self._getAdmins(event)
@@ -290,3 +319,35 @@ class IsInvitedRule(InvitedRule):
         if await self._whoIsInvited(event) == -event.get("group_id"):
             return True
         return False
+    
+class OnPayloadRule(BaseRule):
+        
+    def __init__(self,
+                 payload: dict = {}) -> None:
+        '''
+        Возвращает True если payload совпадает с переданным
+        
+        :param payload: Ожидаемый payload от события
+        :type payload: dict
+        '''
+        super().__init__(
+            on_event_types = [BotEventType.MESSAGE_NEW, BotEventType.MESSAGE_EVENT]
+        )
+        self.payload: dict = payload
+    
+    async def check(self, event: dict) -> bool:
+        
+        _event_object: dict = event["object"]
+
+        if event.get("type") == BotEventType.MESSAGE_NEW: _event_object = event["object"]["message"]
+
+        _payload = _event_object.get("payload", None)
+
+        if self.payload == {} and _payload not in [{}, None]:
+            return True
+        
+        if self.payload == {}: return False
+        
+        return _payload == self.payload
+        
+        
