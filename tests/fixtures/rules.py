@@ -123,6 +123,12 @@ def results():
         [True, False, {"triggers": ["test", "darky"]}, False, {"variable": "[club123|@club123] [id1234|@id1234] darky"}, {"mentions": [{"type": "club", "id": 123, "screen_name": "club123", "text": "@club123"}, {"type": "id", "id": 1234, "screen_name": "id1234", "text": "@id1234"}]}, True, {"have_reply": True}, False, False, True, True, False]
     ]
 
+@pytest.fixture()
+def non_message_new_results():
+    return [
+        [True, False, False, False, False, False, False, False, False, False, False, False, False]
+    ]
+
 @pytest.fixture
 def handler_results():
     return [
@@ -253,7 +259,7 @@ def fake_payload_event():
         "object": {
             "peer_id": 2000000001,
             "conversation_message_id": 1,
-            "from_id": 1234
+            "user_id": 1234
         }
     }
 

@@ -3,16 +3,22 @@ from typing import Any
 import logging
 
 from ...utils.config import CONFIG
+from ...utils.types.event_types import BotEventType
 
 if TYPE_CHECKING:
     from ..methods import VkMethods
 
+logger = logging.getLogger("rule-handler")
+
 class BaseRule:
 
-    def __init__(self, **kwargs):
+    def __init__(self, on_event_types: list[str] = [BotEventType.MESSAGE_NEW], **kwargs):
         '''
         Base rule with base logic
         All child rules should inherit this one with changing check() function's logic
+
+        :param on_event_types: Defines on which event type rule could be applied (On default [MESSAGE_NEW])
+        :type on_event_types: list[str]
 
         :param kwargs: Dict of addictional arguments to this function
         :type kwargs: dict
@@ -20,9 +26,9 @@ class BaseRule:
         self.event: dict = None
         self.methods: "VkMethods" = None
         self.kwargs: dict = kwargs
-        self.logger = logging.getLogger("rule-handler")
+        self.allowed_event_types: list[str] = on_event_types
         self._parseKwargs()
-        self.logger.debug(f"Rule {self.__class__.__name__}({", ".join(self._printKwargs())}) is initiated")
+        logger.debug(f"Rule {self.__class__.__name__}({", ".join(self._printKwargs())}) is initiated")
     
     def _parseKwargs(self):
         '''
@@ -52,10 +58,10 @@ class BaseRule:
         Updates the methods attribute so you could make api requests from inside the rule
         '''
         try:
-            self.logger.debug(f"Linking VkMethods class to the {self.__class__.__name__}...")
+            logger.debug(f"Linking VkMethods class to the {self.__class__.__name__}...")
             self.methods = methods
         except Exception as ex:
-            self.logger.error(f"Got an error while linking", exc_info=True)
+            logger.error(f"Got an error while linking", exc_info=True)
             return False
     
     async def _check(self, event: dict, methods: 'VkMethods') -> bool | dict:
@@ -64,16 +70,20 @@ class BaseRule:
         Allows to logging
         '''
         try:
-            self.logger.debug(f"Checking rule {self.__class__.__name__}({self._printKwargs()})...")
+            logger.debug(f"Checking rule {self.__class__.__name__}({self._printKwargs()})...")
+
+            if event.get("type", None) not in self.allowed_event_types:
+                logger.warning(f"Rule {self.__class__.__name__} cannot be applied on non {self.allowed_event_types} event types")
+                return False
 
             if self.methods is None:
                 await self.updateVkMethods(methods)
                 
             response = await self.check(event)
-            self.logger.debug(f"Rule {self.__class__.__name__} returned {response}")
+            logger.debug(f"Rule {self.__class__.__name__} returned {response}")
             return response
         except Exception as ex:
-            self.logger.error(f"Rule {self.__class__.__name__} returned an exception", exc_info=True)
+            logger.error(f"Rule {self.__class__.__name__} returned an exception", exc_info=True)
             return False
 
     async def check(self, event: dict) -> bool | dict:
