@@ -144,7 +144,7 @@ class Messages(BaseMethodsGroup):
             "event_id": event_id,
             "user_id": user_id,
             "peer_id": peer_id,
-            "event_data": event_id,
+            "event_data": event_data,
             "v": self.__api_version__
         }
         response = await self.base_api.base_get_method(api_method=f"{self.method}.sendMessageEventAnswer",
